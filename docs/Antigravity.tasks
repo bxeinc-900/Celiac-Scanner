@@ -13,8 +13,9 @@
 - [x] Setup UI Layout and Navigation framing
 - [x] Firebase Cloud Functions initial TypeScript setup
 - [ ] Initialize standard React Native / Expo codebase (Waiting for user instruction)
+- [x] Connect Gemini API SDK
 - [ ] Connect RevenueCat SDK
-- [ ] Connect Gemini API SDK
 - [ ] Setup full Native Navigation Stack
+
 
 

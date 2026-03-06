@@ -4,8 +4,9 @@ import { CircleUser, ClipboardList, Camera, Map, ChefHat } from 'lucide-react';
 
 import { CameraScanner } from './components/organisms/CameraScanner';
 import { AnalysisOverlay } from './components/organisms/AnalysisOverlay';
-import { NanoBananaEngine } from './services/ai_engine/nanoBananaEngine';
-import type { ChainOfVerificationResult } from './services/ai_engine/nanoBananaEngine';
+import { ModalPanel } from './components/organisms/ModalPanel';
+import { CeliacSafeReferenceEngine } from './services/ai_engine/celiacSafeReferenceEngine';
+import type { CeliacSafetyReport } from './services/ai_engine/celiacSafeReferenceEngine';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { auth } from './services/firebase';
@@ -13,8 +14,8 @@ import { LoginScreen } from './components/organisms/LoginScreen';
 
 export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [result, setResult] = useState<ChainOfVerificationResult | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [result, setResult] = useState<CeliacSafetyReport | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -42,23 +43,23 @@ export default function App() {
 
   const handleCapture = async (photo: any) => {
     setIsProcessing(true);
-    setShowOverlay(true);
 
     // Call the engine
-    const analysisResult = await NanoBananaEngine.processLabel(photo?.path || 'mock_uri');
+    const analysisResult = await CeliacSafeReferenceEngine.process(photo?.path || 'mock_uri');
 
-    // Make mock data closely match the mock up
-    setResult({
-      ...analysisResult,
-      status: 'SAFE',
-      productName: "Cheery-O's Cereal"
-    });
+    setResult(analysisResult);
     setIsProcessing(false);
+    setShowModal(true);
   };
 
-  const handleCloseOverlay = () => {
-    setShowOverlay(false);
-    setTimeout(() => setResult(null), 300); // Wait for slide animation
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setTimeout(() => setResult(null), 400); // Wait for slide animation
+  };
+
+  const handleSaveToHistory = () => {
+    console.log("Saved to history!");
+    handleCloseModal();
   };
 
   return (
@@ -90,14 +91,14 @@ export default function App() {
             </View>
 
             {/* Overlapping card logic here */}
-            {showOverlay && (
-              <AnalysisOverlay
-                isVisible={showOverlay}
-                isProcessing={isProcessing}
-                result={result}
-                onClose={handleCloseOverlay}
-              />
-            )}
+            {isProcessing && <AnalysisOverlay isVisible={isProcessing} />}
+
+            <ModalPanel
+              isVisible={showModal}
+              report={result}
+              onClose={handleCloseModal}
+              onSave={handleSaveToHistory}
+            />
           </View>
         </View>
 

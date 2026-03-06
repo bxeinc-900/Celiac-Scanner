@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FC } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
@@ -8,16 +8,60 @@ interface CameraScannerProps {
 }
 
 export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
     useEffect(() => {
-        setHasPermission(true);
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+                setHasPermission(true);
+            } catch (err) {
+                console.error("Camera access denied:", err);
+                setHasPermission(false);
+            }
+        }
+        setupCamera();
+
+        return () => {
+            if (videoRef.current && videoRef.current.srcObject) {
+                const stream = videoRef.current.srcObject as MediaStream;
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
     }, []);
+
+    const capturePhoto = useCallback(() => {
+        if (!videoRef.current || isProcessing) return;
+        const video = videoRef.current;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            onCapture({ path: dataUrl });
+        }
+    }, [onCapture, isProcessing]);
+
+    if (hasPermission === false) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Camera Permission Denied</Text>
+            </View>
+        );
+    }
 
     if (hasPermission === null) {
         return (
             <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Requesting...</Text>
+                <Text style={styles.loadingText}>Requesting Camera Access...</Text>
             </View>
         );
     }
@@ -25,12 +69,24 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     return (
         <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => !isProcessing && onCapture({ path: 'mock.jpg' })}
+            onPress={capturePhoto}
             style={styles.container}
         >
-            <View style={{ flex: 1, backgroundColor: '#D6CDB1', justifyContent: 'center', alignItems: 'center' }}>
-                {/* Simulated Camera Feed Background matching the mockup's blurred background */}
-                <Text style={{ color: '#4A5B4C', fontWeight: 'bold' }}>[ TAP TO SCAN PRODUCT ]</Text>
+            <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
 
                 {/* Reticle */}
                 <View style={styles.reticleContainer}>
