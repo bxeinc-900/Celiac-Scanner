@@ -10,10 +10,11 @@
 - [x] Build Core Scanning UI components (Atoms & Organisms)
 - [x] Implement Nano Banana 2 Agentic Logic (CoV & Web Grounding)
 - [x] Setup Mock Web Preview for UI Verification
+- [x] Setup UI Layout and Navigation framing
+- [x] Firebase Cloud Functions initial TypeScript setup
 - [ ] Initialize standard React Native / Expo codebase (Waiting for user instruction)
-- [ ] Setup `gh repo create` (Waiting for user instruction)
-- [ ] Firebase Cloud Functions initial TypeScript setup
 - [ ] Connect RevenueCat SDK
 - [ ] Connect Gemini API SDK
-- [ ] Setup Navigation Stack
+- [ ] Setup full Native Navigation Stack
+
 

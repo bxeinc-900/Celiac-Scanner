@@ -1,16 +1,44 @@
-import { useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { CircleUser, ClipboardList, Camera, Map, ChefHat } from 'lucide-react';
 
 import { CameraScanner } from './components/organisms/CameraScanner';
 import { AnalysisOverlay } from './components/organisms/AnalysisOverlay';
 import { NanoBananaEngine } from './services/ai_engine/nanoBananaEngine';
 import type { ChainOfVerificationResult } from './services/ai_engine/nanoBananaEngine';
+import { onAuthStateChanged } from 'firebase/auth';
+import type { User } from 'firebase/auth';
+import { auth } from './services/firebase';
+import { LoginScreen } from './components/organisms/LoginScreen';
 
 export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [result, setResult] = useState<ChainOfVerificationResult | null>(null);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser: User | null) => {
+      setUser(currentUser);
+      setIsInitializing(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (isInitializing) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#2A422B" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <LoginScreen />;
+  }
 
   const handleCapture = async (photo: any) => {
     setIsProcessing(true);
