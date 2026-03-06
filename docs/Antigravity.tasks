@@ -1,0 +1,19 @@
+# Antigravity Tasks - Celiac Scanner
+
+- [x] Initial Project Setup (Directory structure, blank files)
+- [x] Create `.gitignore`
+- [x] Create `README.md`
+- [x] Create `firebase.json` skeleton
+- [x] Create `docs/Gemini.md` (Chain-of-Verification)
+- [x] Create `docs/RevenueCat.md` (Subscriptions)
+- [x] Initialize Git Repository
+- [x] Build Core Scanning UI components (Atoms & Organisms)
+- [x] Implement Nano Banana 2 Agentic Logic (CoV & Web Grounding)
+- [x] Setup Mock Web Preview for UI Verification
+- [ ] Initialize standard React Native / Expo codebase (Waiting for user instruction)
+- [ ] Setup `gh repo create` (Waiting for user instruction)
+- [ ] Firebase Cloud Functions initial TypeScript setup
+- [ ] Connect RevenueCat SDK
+- [ ] Connect Gemini API SDK
+- [ ] Setup Navigation Stack
+
