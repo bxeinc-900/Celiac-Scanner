@@ -6,17 +6,17 @@ export interface TextDetectionResult {
 export const TextDetector = {
     /**
      * Identifies if a frame contains text.
-     * @param frame Mock frame data or image URI
+     * @param dataUri Image URI
      * @returns Promise<TextDetectionResult>
      */
-    async detectText(frame: string): Promise<TextDetectionResult> {
-        // Mock logic for text detection
-        // In a real implementation, this would use an OCR library or an AI model
-        const hasText = frame.toLowerCase().includes('text');
+    async detectText(dataUri: string): Promise<TextDetectionResult> {
+        // Real logic should use the same CoV pipeline or a lightweight OCR
+        // For now, removing the mock wheat/barley/malt strings to avoid erroneous tests.
+        if (!dataUri) return { hasText: false };
 
         return {
-            hasText,
-            detectedText: hasText ? "Sample ingredients: Wheat, Barley, Malt" : undefined
+            hasText: true,
+            detectedText: "Extracting labels via Nano Banana 2 Pipeline..."
         };
     }
 };

@@ -32,7 +32,7 @@ Return a structured JSON report. You MUST include at least 3 distinct domain ref
 The summary should be concise but informative (e.g., "Product X is GFCO Certified. Safe to consume.").
 `;
 
-const responseSchemaMock = {
+const responseSchema = {
     type: "object",
     properties: {
         status: { type: "string", enum: ["SAFE", "UNSAFE", "UNCERTAIN"] },
@@ -49,7 +49,7 @@ const responseSchemaMock = {
 };
 
 export const processLabelCoV = onCall({
-    memory: "512MiB",
+    memory: "1GiB",
     timeoutSeconds: 300,
 }, async (request) => {
     if (!request.auth) {
@@ -78,15 +78,24 @@ export const processLabelCoV = onCall({
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Force image identification
+    // Force image identification and deep research
     const userPrompt = `
         ANALYSIS TASK:
         Scanning Mode: ${scanMode}
         
         1. Context: You are currently looking at the ${scanMode === 'PRODUCT' ? 'front of the package' : 'ingredients label'} of a product.
-        2. Action: Extract the exact Product Name and Brand from the image pixels. Do not pull from memory unless the pixels are clear.
-        3. Action: Research safety using the Celiac Reference Suite.
-        4. Output: Provide the detailed JSON report.
+        2. Action: Extract the exact Product Name and Brand from the image pixels. 
+        3. Action: DEEP RESEARCH. You MUST perform specific search queries for the identified [Product Name] + [Brand Name] on the following domains:
+           * site:gluten.org OR site:celiac.org (Certification check)
+           * site:nationalceliac.org (Certified products check)
+           * site:beyondceliac.org (Hidden ingredients check)
+           * site:glutenfreewatchdog.org (Safety alerts check)
+        4. Action: Synthesize a "Safety Score" based on the findings:
+           * HIGH: Certified Gluten-Free on trusted domains.
+           * MEDIUM: Naturally GF grains, no hidden gluten flags found on beyondceliac.org.
+           * LOW: Generic product or ambiguous warnings found.
+           * UNSAFE: Explicit gluten or failed safety tests found.
+        5. Output: Provide the detailed JSON report with at least 3 distinct domain references.
     `;
 
     const model = genAI.getGenerativeModel({
@@ -94,7 +103,7 @@ export const processLabelCoV = onCall({
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: {
             responseMimeType: "application/json",
-            responseSchema: responseSchemaMock as any,
+            responseSchema: responseSchema as any,
         },
         tools: [
             {
