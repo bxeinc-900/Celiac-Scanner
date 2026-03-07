@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
-import { ShieldCheck, ShieldAlert, ShieldQuestion, ExternalLink, X, Info, Save } from 'lucide-react';
+import { ShieldCheck, ShieldQuestion, ExternalLink, X, Info, Save, Skull } from 'lucide-react';
 import type { CeliacSafetyReport } from '../../services/ai_engine/celiacSafeReferenceEngine';
 
 interface AnalysisOverlayProps {
@@ -32,10 +32,12 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
         const isUnsafe = result.status === 'Gluten Found';
         const isBlurry = result.status === 'Blurry Image';
 
-        const themeColor = isSafe ? '#2ecc71' : isUnsafe ? '#ff7f50' : isBlurry ? '#95a5a6' : '#e67e22';
+        const themeColor = isSafe ? '#2ecc71' : isUnsafe ? '#ff3b30' : isBlurry ? '#95a5a6' : '#e67e22';
+        const cardBg = isUnsafe ? '#3d0808' : '#1B3022'; // Deep blood red vs deep forest green
+        const accentColor = isUnsafe ? '#ff8a80' : '#A0D39B';
 
         return (
-            <View style={styles.reportCard}>
+            <View style={[styles.reportCard, { backgroundColor: cardBg, borderColor: isUnsafe ? 'rgba(255,59,48,0.3)' : 'rgba(255,255,255,0.14)' }]}>
                 <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                     <X color="#FFF" size={24} />
                 </TouchableOpacity>
@@ -43,7 +45,7 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     <View style={[styles.iconBadge, { backgroundColor: themeColor }]}>
                         {isSafe ? <ShieldCheck color="#FFF" size={48} /> :
-                            isUnsafe ? <ShieldAlert color="#FFF" size={48} /> :
+                            isUnsafe ? <Skull color="#FFF" size={48} /> :
                                 <ShieldQuestion color="#FFF" size={48} />}
                     </View>
 
@@ -54,8 +56,8 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
 
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Info size={18} color="#A0D39B" />
-                            <Text style={styles.sectionTitle}>Findings Report</Text>
+                            <Info size={18} color={accentColor} />
+                            <Text style={[styles.sectionTitle, { color: accentColor }]}>Findings Report</Text>
                         </View>
                         <Text style={styles.summaryText}>{result.summary}</Text>
                     </View>
@@ -77,7 +79,7 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
                     )}
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Trusted References</Text>
+                        <Text style={[styles.sectionTitle, { color: accentColor }]}>Trusted References</Text>
                         <View style={styles.referenceGrid}>
                             {result.references.map((ref, idx) => (
                                 <TouchableOpacity
@@ -89,7 +91,7 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
                                     }}
                                 >
                                     <Text style={styles.refText}>{ref}</Text>
-                                    <ExternalLink size={12} color="#A0D39B" />
+                                    <ExternalLink size={12} color={accentColor} />
                                 </TouchableOpacity>
                             ))}
                         </View>
