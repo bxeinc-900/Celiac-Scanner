@@ -14,7 +14,7 @@
     },
     "main": "lib/index.js",
     "dependencies": {
-        "@google/genai": "^1.44.0",
+        "@google/generative-ai": "^0.24.1",
         "firebase-admin": "^11.8.0",
         "firebase-functions": "^4.3.1"
     },

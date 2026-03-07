@@ -106,6 +106,17 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                     </View>
                     <Text style={styles.scanInstruction}>Align Ingredients and Tap to Scan</Text>
                 </View>
+
+                {/* Capture Button */}
+                <View style={styles.captureButtonContainer}>
+                    <TouchableOpacity
+                        style={styles.captureButtonOuter}
+                        onPress={capturePhoto}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.captureButtonInner} />
+                    </TouchableOpacity>
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -162,7 +173,7 @@ const styles = StyleSheet.create({
     },
     scanInstruction: {
         position: 'absolute',
-        bottom: 40,
+        top: 60,
         color: '#F7F8F7',
         fontSize: 16,
         fontWeight: '600',
@@ -171,6 +182,28 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 25,
         overflow: 'hidden',
+    },
+    captureButtonContainer: {
+        position: 'absolute',
+        bottom: 30,
+        alignSelf: 'center',
+        zIndex: 20,
+    },
+    captureButtonOuter: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        borderWidth: 4,
+        borderColor: '#F7F8F7',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    captureButtonInner: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#F7F8F7',
     },
     reticleContainer: {
         ...StyleSheet.absoluteFillObject,
