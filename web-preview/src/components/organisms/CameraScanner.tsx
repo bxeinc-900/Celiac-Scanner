@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FC } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 
 interface CameraScannerProps {
     onCapture: (photo: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => void;
@@ -11,7 +11,6 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     const videoRef = useRef<HTMLVideoElement>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
-    const [scanMode, setScanMode] = useState<'PRODUCT' | 'INGREDIENTS'>('PRODUCT');
 
     // Effect 1: Request camera stream
     const setupCamera = useCallback(async () => {
@@ -67,15 +66,21 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
         if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            onCapture({ path: dataUrl, scanMode });
+            onCapture({ path: dataUrl, scanMode: 'PRODUCT' });
         }
-    }, [onCapture, isProcessing, scanMode]);
+    }, [onCapture, isProcessing]);
 
     if (hasPermission === false) {
         return (
             <View style={styles.loadingContainer}>
+                <View style={styles.errorIconContainer}>
+                    <Text style={styles.errorIcon}>⚠️</Text>
+                </View>
                 <Text style={styles.errorText}>Camera Access Denied</Text>
-                <Text style={styles.subErrorText}>Please enable camera permissions in your browser settings.</Text>
+                <Text style={styles.subErrorText}>Please enable camera permissions in your browser settings to scan products.</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={setupCamera}>
+                    <Text style={styles.retryButtonText}>Retry Access</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -83,67 +88,85 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     if (hasPermission === null) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#F7F8F7" />
-                <Text style={styles.loadingText}>Requesting Camera Access...</Text>
+                <ActivityIndicator size="large" color="#A0D39B" />
+                <Text style={styles.loadingText}>Initializing Scanner...</Text>
             </View>
         );
     }
 
     return (
-        <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={capturePhoto}
+        <ScrollView
             style={styles.container}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
         >
-            <View style={styles.videoWrapper}>
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    style={webStyles.video}
-                />
+            {/* Camera Section */}
+            <View style={styles.cameraSection}>
+                <TouchableOpacity
+                    activeOpacity={0.95}
+                    onPress={capturePhoto}
+                    style={styles.videoWrapper}
+                >
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        style={webStyles.video}
+                    />
 
-                {/* Visual Overlay remains same */}
-                <View style={styles.reticleContainer}>
-                    <View style={styles.reticleBox}>
-                        <View style={styles.cornerTL} />
-                        <View style={styles.cornerTR} />
-                        <View style={styles.scanLine} />
-                        <View style={styles.cornerBL} />
-                        <View style={styles.cornerBR} />
+                    {/* Reticle Overlay */}
+                    <View style={styles.reticleContainer}>
+                        <View style={styles.reticleBox}>
+                            <View style={styles.cornerTL} />
+                            <View style={styles.cornerTR} />
+                            <View style={styles.scanLine} />
+                            <View style={styles.cornerBL} />
+                            <View style={styles.cornerBR} />
+                        </View>
                     </View>
-                    <Text style={styles.scanInstruction}>Align {scanMode === 'PRODUCT' ? 'Product Front' : 'Ingredients List'} and Tap</Text>
-                </View>
 
-                {/* Scan Mode Toggle */}
-                <View style={styles.modeToggleContainer}>
-                    <TouchableOpacity
-                        style={[styles.modeTab, scanMode === 'PRODUCT' && styles.activeTab]}
-                        onPress={() => setScanMode('PRODUCT')}
-                    >
-                        <Text style={[styles.modeTabText, scanMode === 'PRODUCT' && styles.activeTabText]}>PRODUCT</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.modeTab, scanMode === 'INGREDIENTS' && styles.activeTab]}
-                        onPress={() => setScanMode('INGREDIENTS')}
-                    >
-                        <Text style={[styles.modeTabText, scanMode === 'INGREDIENTS' && styles.activeTabText]}>INGREDIENTS</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Capture Button */}
-                <View style={styles.captureButtonContainer}>
-                    <TouchableOpacity
-                        style={styles.captureButtonOuter}
-                        onPress={capturePhoto}
-                        activeOpacity={0.7}
-                    >
-                        <View style={styles.captureButtonInner} />
-                    </TouchableOpacity>
-                </View>
+                    {/* Capture Button Overlay */}
+                    <View style={styles.captureButtonContainer}>
+                        <TouchableOpacity
+                            style={styles.captureButtonOuter}
+                            onPress={capturePhoto}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.captureButtonInner} />
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
             </View>
-        </TouchableOpacity>
+
+            {/* Instruction Section */}
+            <View style={styles.instructionSection}>
+                <View style={styles.handle} />
+
+                <Text style={styles.instructionHeader}>Celiac Safety Scanner</Text>
+
+                <View style={styles.instructionStep}>
+                    <View style={styles.stepIconContainer}>
+                        <Text style={styles.stepIconText}>1</Text>
+                    </View>
+                    <View style={styles.stepTextContainer}>
+                        <Text style={styles.stepTitle}>Scan & Verify</Text>
+                        <Text style={styles.stepDescription}>
+                            Take a photo of the front of the packaging or the label ingredients and our AI will scan for gluten and celiac safe.
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.infoCard}>
+                    <Text style={styles.infoIcon}>🛡️</Text>
+                    <Text style={styles.infoText}>
+                        Always double-check results if you notice any unusual symptoms. Safety is our priority.
+                    </Text>
+                </View>
+
+                <View style={{ height: 40 }} />
+            </View>
+        </ScrollView>
     );
 };
 
@@ -163,6 +186,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
+    scrollContent: {
+        flexGrow: 1,
+        backgroundColor: '#111',
+    },
+    cameraSection: {
+        height: 380, // Reduced height for the camera viewport
+        width: '100%',
+        position: 'relative',
+        backgroundColor: '#000',
+    },
     videoWrapper: {
         flex: 1,
         width: '100%',
@@ -175,74 +208,149 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#1B3022',
-        padding: 20,
+        padding: 24,
     },
     loadingText: {
-        color: '#F7F8F7',
+        color: '#A0D39B',
         fontSize: 18,
         fontWeight: '600',
-        marginTop: 16,
+        marginTop: 20,
+        letterSpacing: 0.5,
+    },
+    errorIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    errorIcon: {
+        fontSize: 40,
     },
     errorText: {
         color: '#FF6B6B',
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: '700',
-        marginBottom: 8,
+        marginBottom: 12,
         textAlign: 'center',
     },
     subErrorText: {
         color: '#A0D39B',
-        fontSize: 14,
-        textAlign: 'center',
-        opacity: 0.8,
-    },
-    scanInstruction: {
-        position: 'absolute',
-        top: 60,
-        color: '#F7F8F7',
         fontSize: 16,
-        fontWeight: '600',
-        backgroundColor: 'rgba(27, 48, 34, 0.8)',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 25,
-        overflow: 'hidden',
+        textAlign: 'center',
+        opacity: 0.9,
+        lineHeight: 22,
+        marginBottom: 32,
     },
-    modeToggleContainer: {
-        position: 'absolute',
-        top: 120,
-        flexDirection: 'row',
-        backgroundColor: 'rgba(27, 48, 34, 0.4)',
-        borderRadius: 20,
-        padding: 4,
-        alignSelf: 'center',
+    retryButton: {
+        backgroundColor: '#A0D39B',
+        paddingHorizontal: 32,
+        paddingVertical: 14,
+        borderRadius: 12,
     },
-    modeTab: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 16,
-    },
-    activeTab: {
-        backgroundColor: '#F7F8F7',
-    },
-    modeTabText: {
-        color: '#F7F8F7',
-        fontSize: 12,
+    retryButtonText: {
+        color: '#1B3022',
+        fontSize: 16,
         fontWeight: '700',
     },
-    activeTabText: {
-        color: '#2A422B',
+    instructionSection: {
+        backgroundColor: '#1B3022',
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        marginTop: -30, // Overlap camera slightly
+        padding: 24,
+        paddingTop: 12,
+        minHeight: 400,
+    },
+    handle: {
+        width: 40,
+        height: 4,
+        backgroundColor: 'rgba(247, 248, 247, 0.2)',
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginBottom: 24,
+    },
+    instructionHeader: {
+        color: '#F7F8F7',
+        fontSize: 24,
+        fontWeight: '800',
+        marginBottom: 28,
+        textAlign: 'center',
+        letterSpacing: -0.5,
+    },
+    instructionStep: {
+        flexDirection: 'row',
+        marginBottom: 24,
+        backgroundColor: 'rgba(247, 248, 247, 0.05)',
+        padding: 16,
+        borderRadius: 20,
+        alignItems: 'flex-start',
+    },
+    stepIconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#A0D39B',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+        marginTop: 2,
+    },
+    stepIconText: {
+        color: '#1B3022',
+        fontWeight: '900',
+        fontSize: 16,
+    },
+    stepTextContainer: {
+        flex: 1,
+    },
+    stepTitle: {
+        color: '#F7F8F7',
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    stepDescription: {
+        color: 'rgba(247, 248, 247, 0.7)',
+        fontSize: 15,
+        lineHeight: 22,
+    },
+    highlightText: {
+        color: '#A0D39B',
+        fontWeight: '600',
+    },
+    infoCard: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(160, 211, 155, 0.1)',
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(160, 211, 155, 0.2)',
+        marginTop: 8,
+        alignItems: 'center',
+    },
+    infoIcon: {
+        fontSize: 20,
+        marginRight: 12,
+    },
+    infoText: {
+        color: '#A0D39B',
+        fontSize: 14,
+        flex: 1,
+        lineHeight: 20,
     },
     captureButtonContainer: {
         position: 'absolute',
-        bottom: 30,
+        bottom: 50,
         alignSelf: 'center',
         zIndex: 20,
     },
     captureButtonOuter: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 72,
+        height: 72,
+        borderRadius: 36,
         borderWidth: 4,
         borderColor: '#F7F8F7',
         justifyContent: 'center',
@@ -250,10 +358,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     captureButtonInner: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 54,
+        height: 54,
+        borderRadius: 27,
         backgroundColor: '#F7F8F7',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
     },
     reticleContainer: {
         ...StyleSheet.absoluteFillObject,
@@ -265,9 +377,9 @@ const styles = StyleSheet.create({
         width: 250,
         height: 350,
         justifyContent: 'space-between',
-        backgroundColor: 'rgba(113, 149, 104, 0.15)', // Light green tint
-        borderWidth: 2,
-        borderColor: 'rgba(113, 149, 104, 0.3)',
+        backgroundColor: 'rgba(160, 211, 155, 0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(160, 211, 155, 0.2)',
     },
     scanLine: {
         position: 'absolute',
@@ -275,14 +387,14 @@ const styles = StyleSheet.create({
         left: -10,
         right: -10,
         height: 2,
-        backgroundColor: 'rgba(144, 238, 144, 0.8)',
-        shadowColor: '#90EE90',
+        backgroundColor: 'rgba(160, 211, 155, 0.8)',
+        shadowColor: '#A0D39B',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 1,
         shadowRadius: 10,
     },
-    cornerTL: { position: 'absolute', top: -4, left: -4, width: 40, height: 40, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderTopLeftRadius: 16 },
-    cornerTR: { position: 'absolute', top: -4, right: -4, width: 40, height: 40, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderTopRightRadius: 16 },
-    cornerBL: { position: 'absolute', bottom: -4, left: -4, width: 40, height: 40, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderBottomLeftRadius: 16 },
-    cornerBR: { position: 'absolute', bottom: -4, right: -4, width: 40, height: 40, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderBottomRightRadius: 16 },
+    cornerTL: { position: 'absolute', top: -2, left: -2, width: 30, height: 30, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderTopLeftRadius: 12 },
+    cornerTR: { position: 'absolute', top: -2, right: -2, width: 30, height: 30, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderTopRightRadius: 12 },
+    cornerBL: { position: 'absolute', bottom: -2, left: -2, width: 30, height: 30, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderBottomLeftRadius: 12 },
+    cornerBR: { position: 'absolute', bottom: -2, right: -2, width: 30, height: 30, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderBottomRightRadius: 12 },
 });
