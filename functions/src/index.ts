@@ -50,6 +50,7 @@ const responseSchema = {
 export const processLabelCoV = onCall({
     memory: "1GiB",
     timeoutSeconds: 300,
+    secrets: ["GEMINI_API_KEY"],
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError(
