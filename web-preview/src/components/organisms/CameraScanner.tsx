@@ -13,25 +13,33 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     const [stream, setStream] = useState<MediaStream | null>(null);
 
     // Effect 1: Request camera stream
-    useEffect(() => {
-        async function setupCamera() {
+    const setupCamera = useCallback(async () => {
+        setHasPermission(null);
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            });
+            setStream(s);
+            setHasPermission(true);
+        } catch (err) {
+            console.warn("High-res failed, retrying with defaults:", err);
             try {
-                const s = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                });
+                const s = await navigator.mediaDevices.getUserMedia({ video: true });
                 setStream(s);
                 setHasPermission(true);
-            } catch (err) {
-                console.error("Camera access denied or failed:", err);
+            } catch (retryErr) {
+                console.error("Camera access failed:", retryErr);
                 setHasPermission(false);
             }
         }
-        setupCamera();
+    }, []); // Removed stream from useCallback dependencies as it's set within the function, to avoid infinite loop.
 
+    useEffect(() => {
+        setupCamera();
         return () => {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
