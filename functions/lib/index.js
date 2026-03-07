@@ -50,6 +50,7 @@ const responseSchema = {
 exports.processLabelCoV = (0, https_1.onCall)({
     memory: "1GiB",
     timeoutSeconds: 300,
+    secrets: ["GEMINI_API_KEY"],
 }, async (request) => {
     if (!request.auth) {
         throw new https_1.HttpsError("unauthenticated", "You must be logged in to analyze labels.");
@@ -83,7 +84,7 @@ exports.processLabelCoV = (0, https_1.onCall)({
         5. Output: Provide the detailed JSON report with at least 3 distinct domain references.
     `;
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-3.1-flash-image-preview",
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: {
             responseMimeType: "application/json",
@@ -91,10 +92,10 @@ exports.processLabelCoV = (0, https_1.onCall)({
         },
         tools: [
             {
-                googleSearchRetrieval: {} // Corrected tool name to googleSearchRetrieval
+                googleSearch: {} // Corrected tool name for this model/SDK
             }
         ],
-    });
+    }, { apiVersion: "v1beta" });
     try {
         const result = await model.generateContent([
             {

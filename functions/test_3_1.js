@@ -5,16 +5,16 @@ async function testTool() {
     const genAI = new GoogleGenerativeAI(apiKey);
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.1-flash-image-preview",
         tools: [{ googleSearch: {} }]
     }, { apiVersion: "v1beta" });
 
     try {
         const result = await model.generateContent("Who won the Super Bowl in 2025?");
-        console.log("Success with googleSearch tool");
-        console.log(result.response.text());
+        console.log("Success with googleSearch tool on 3.1");
+        // console.log(result.response.text());
     } catch (e) {
-        console.error("Failed with googleSearch tool:", e.message);
+        console.error("Failed with googleSearch tool on 3.1:", e.message);
     }
 }
 

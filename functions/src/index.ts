@@ -99,7 +99,7 @@ export const processLabelCoV = onCall({
     `;
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash", // Replaced invalid gemini-2.5-flash with valid 2.0-flash
+        model: "gemini-3.1-flash-image-preview", // Upgraded to Nano Banana 2 (3.1 Flash)
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: {
             responseMimeType: "application/json",
@@ -107,10 +107,10 @@ export const processLabelCoV = onCall({
         },
         tools: [
             {
-                googleSearchRetrieval: {} // Corrected tool name to googleSearchRetrieval
+                googleSearch: {} // Corrected tool name for this model/SDK
             } as any
         ],
-    });
+    }, { apiVersion: "v1beta" });
 
     try {
         const result = await model.generateContent([
