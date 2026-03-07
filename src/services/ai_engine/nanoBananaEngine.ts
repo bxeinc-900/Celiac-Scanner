@@ -14,6 +14,7 @@ export interface ChainOfVerificationResult {
     flaggedIngredients: string[];
     warnings: string[];
     confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+    references: string[];
 }
 
 const SYSTEM_INSTRUCTION = `
@@ -54,6 +55,7 @@ export const NanoBananaEngine = {
             flaggedIngredients: isMockUnsafe ? ['Malt Extract'] : [],
             warnings: isMockUnsafe ? ['Manufactured in a facility that also processes wheat.'] : [],
             confidence: 'HIGH',
+            references: ['celiac.org', 'gluten.org', 'beyondceliac.org']
         };
     }
 };

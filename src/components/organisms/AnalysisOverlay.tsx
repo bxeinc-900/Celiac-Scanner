@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, ScrollView, Dimensions, TouchableOpacity, Linking, Platform } from 'react-native';
 import { StatusBadge } from '../atoms/StatusBadge';
 
 interface AnalysisResult {
@@ -9,6 +9,7 @@ interface AnalysisResult {
     ingredients: string[];
     flaggedIngredients: string[];
     warnings: string[];
+    references: string[];
 }
 
 interface AnalysisOverlayProps {
@@ -76,10 +77,28 @@ export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({ isVisible, isP
                         </View>
                     )}
 
-                    <Text style={styles.sectionTitle}>Scanned Ingredients</Text>
+                    <Text style={sectionTitleStyle}>Scanned Ingredients</Text>
                     <Text style={styles.ingredientsList}>{result.ingredients.join(', ')}</Text>
 
-                    <Text onPress={onClose} style={styles.closeButton}>Scan Another Product</Text>
+                    <Text style={sectionTitleStyle}>Trusted References</Text>
+                    <View style={styles.referenceGrid}>
+                        {result.references.map((ref, idx) => (
+                            <TouchableOpacity
+                                key={idx}
+                                style={styles.refChip}
+                                onPress={() => {
+                                    const url = ref.startsWith('http') ? ref : `https://${ref}`;
+                                    Linking.openURL(url);
+                                }}
+                            >
+                                <Text style={styles.refText}>{ref}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <TouchableOpacity onPress={onClose} style={styles.actionButton}>
+                        <Text style={styles.actionButtonText}>Scan Another Product</Text>
+                    </TouchableOpacity>
                 </ScrollView>
             ) : null}
         </Animated.View>
@@ -191,12 +210,38 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         fontSize: 14,
     },
-    closeButton: {
-        marginTop: 30,
-        color: '#50C878', // Emerald
+    referenceGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 10,
+        marginBottom: 20
+    },
+    refChip: {
+        backgroundColor: '#E0E5E0',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#D1D5D1'
+    },
+    refText: {
+        color: '#1B3022',
+        fontSize: 12,
+        fontWeight: 'bold'
+    },
+    actionButton: {
+        marginTop: 20,
+        backgroundColor: '#1B3022',
+        borderRadius: 12,
+        padding: 16,
+    },
+    actionButtonText: {
+        color: '#FFF',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-        padding: 16,
     }
 });
+
+const sectionTitleStyle = StyleSheet.flatten([styles.sectionTitle]) as any;

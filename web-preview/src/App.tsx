@@ -4,7 +4,6 @@ import { CircleUser, ClipboardList, Camera, Map, ChefHat } from 'lucide-react';
 
 import { CameraScanner } from './components/organisms/CameraScanner';
 import { AnalysisOverlay } from './components/organisms/AnalysisOverlay';
-import { ModalPanel } from './components/organisms/ModalPanel';
 import { CeliacSafeReferenceEngine } from './services/ai_engine/celiacSafeReferenceEngine';
 import type { CeliacSafetyReport } from './services/ai_engine/celiacSafeReferenceEngine';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -14,7 +13,6 @@ import { LoginScreen } from './components/organisms/LoginScreen';
 
 export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [result, setResult] = useState<CeliacSafetyReport | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
@@ -49,12 +47,11 @@ export default function App() {
 
     setResult(analysisResult);
     setIsProcessing(false);
-    setShowModal(true);
+    // setShowModal(true); // Redundant now as AnalysisOverlay handles results
   };
 
   const handleCloseModal = () => {
-    setShowModal(false);
-    setTimeout(() => setResult(null), 400); // Wait for slide animation
+    setTimeout(() => setResult(null), 100);
   };
 
   const handleSaveToHistory = () => {
@@ -67,20 +64,25 @@ export default function App() {
       <View style={styles.container}>
         {/* TOP HEADER */}
         <View style={styles.header}>
-          <Image
-            source={{ uri: '/logo-trans.png' }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <CircleUser color="#2A422B" size={40} strokeWidth={2} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.iconButton, { alignItems: 'center' }]}>
-              <ClipboardList color="#2A422B" size={32} strokeWidth={2} />
-              <Text style={styles.iconTextDark}>History</Text>
-            </TouchableOpacity>
+          {/* Left: Profile Icon */}
+          <TouchableOpacity style={styles.headerSideButton}>
+            <CircleUser color="#2A422B" size={32} strokeWidth={2} />
+          </TouchableOpacity>
+
+          {/* Center: Logo */}
+          <View style={styles.logoCenterContainer}>
+            <Image
+              source={{ uri: '/logo-trans.png' }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
+
+          {/* Right: History Icon */}
+          <TouchableOpacity style={styles.headerSideButton}>
+            <ClipboardList color="#2A422B" size={32} strokeWidth={2} />
+            <Text style={styles.headerIconText}>History</Text>
+          </TouchableOpacity>
         </View>
 
         {/* MAIN CONTENT AREA */}
@@ -90,15 +92,16 @@ export default function App() {
               <CameraScanner onCapture={handleCapture} isProcessing={isProcessing} />
             </View>
 
-            {/* Overlapping card logic here */}
-            {isProcessing && <AnalysisOverlay isVisible={isProcessing} />}
-
-            <ModalPanel
-              isVisible={showModal}
-              report={result}
-              onClose={handleCloseModal}
-              onSave={handleSaveToHistory}
-            />
+            {/* Analysis Overlay handles both loading and final report */}
+            {(isProcessing || result) && (
+              <AnalysisOverlay
+                isVisible={isProcessing || !!result}
+                isProcessing={isProcessing}
+                result={result}
+                onClose={handleCloseModal}
+                onSave={handleSaveToHistory}
+              />
+            )}
           </View>
         </View>
 
@@ -141,30 +144,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingRight: 16,
-    paddingLeft: 0,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 8,
+    backgroundColor: '#F5F3E8',
+    height: 80,
   },
-  logo: {
-    width: 336,
-    height: 102,
-    marginLeft: -24, // Pulling it flush to the left boundary
-  },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  iconButton: {
+  headerSideButton: {
+    width: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
-  iconTextDark: {
+  logoCenterContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  logo: {
+    width: 180, // More compact for mobile
+    height: 54,
+  },
+  headerIconText: {
     color: '#2A422B',
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '700',
     marginTop: 2,
+    textTransform: 'uppercase',
   },
   mainContent: {
     flex: 1,
