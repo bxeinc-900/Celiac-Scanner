@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FC } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Camera as CameraIcon } from 'lucide-react';
 
 interface CameraScannerProps {
     onCapture: (photo: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => void;
@@ -36,7 +37,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                 setHasPermission(false);
             }
         }
-    }, []); // Removed stream from useCallback dependencies as it's set within the function, to avoid infinite loop.
+    }, []);
 
     useEffect(() => {
         setupCamera();
@@ -97,11 +98,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     return (
         <View style={styles.container}>
             <View style={styles.cameraSection}>
-                <TouchableOpacity
-                    activeOpacity={0.95}
-                    onPress={capturePhoto}
-                    style={styles.videoWrapper}
-                >
+                <View style={styles.videoWrapper}>
                     <video
                         ref={videoRef}
                         autoPlay
@@ -110,12 +107,19 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                         style={webStyles.video}
                     />
 
+                    {/* Top Pill Overlay */}
+                    <View style={styles.topPillContainer}>
+                        <View style={styles.pill}>
+                            <CameraIcon color="#FFF" size={16} strokeWidth={2.5} style={{ marginRight: 6 }} />
+                            <Text style={styles.pillText}>PHOTO IDENTIFY</Text>
+                        </View>
+                    </View>
+
                     {/* Reticle Overlay */}
                     <View style={styles.reticleContainer}>
                         <View style={styles.reticleBox}>
                             <View style={styles.cornerTL} />
                             <View style={styles.cornerTR} />
-                            <View style={styles.scanLine} />
                             <View style={styles.cornerBL} />
                             <View style={styles.cornerBR} />
                         </View>
@@ -131,7 +135,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                             <View style={styles.captureButtonInner} />
                         </TouchableOpacity>
                     </View>
-                </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -218,118 +222,50 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
-    instructionSection: {
-        backgroundColor: '#1B3022',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        marginTop: -24, // Overlap camera section slightly for integrated look
-        padding: 24,
-        paddingTop: 16,
-        flex: 1,
-        minHeight: 250,
-    },
-    handle: {
-        width: 40,
-        height: 4,
-        backgroundColor: 'rgba(247, 248, 247, 0.2)',
-        borderRadius: 2,
+    topPillContainer: {
+        position: 'absolute',
+        top: 24,
         alignSelf: 'center',
-        marginBottom: 24,
+        zIndex: 20,
     },
-    instructionHeader: {
-        color: '#F7F8F7',
-        fontSize: 24,
-        fontWeight: '800',
-        marginBottom: 28,
-        textAlign: 'center',
-        letterSpacing: -0.5,
-    },
-    instructionStep: {
+    pill: {
         flexDirection: 'row',
-        marginBottom: 24,
-        backgroundColor: 'rgba(247, 248, 247, 0.05)',
-        padding: 16,
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 20,
-        alignItems: 'flex-start',
-    },
-    stepIconContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#A0D39B',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-        marginTop: 2,
-    },
-    stepIconText: {
-        color: '#1B3022',
-        fontWeight: '900',
-        fontSize: 16,
-    },
-    stepTextContainer: {
-        flex: 1,
-    },
-    stepTitle: {
-        color: '#F7F8F7',
-        fontSize: 18,
-        fontWeight: '700',
-        marginBottom: 4,
-    },
-    stepDescription: {
-        color: 'rgba(247, 248, 247, 0.7)',
-        fontSize: 15,
-        lineHeight: 22,
-    },
-    highlightText: {
-        color: '#A0D39B',
-        fontWeight: '600',
-    },
-    infoCard: {
-        flexDirection: 'row',
-        backgroundColor: 'rgba(160, 211, 155, 0.1)',
-        padding: 16,
-        borderRadius: 16,
         borderWidth: 1,
-        borderColor: 'rgba(160, 211, 155, 0.2)',
-        marginTop: 8,
-        alignItems: 'center',
+        borderColor: 'rgba(255,255,255,0.2)',
     },
-    infoIcon: {
-        fontSize: 20,
-        marginRight: 12,
-    },
-    infoText: {
-        color: '#A0D39B',
-        fontSize: 14,
-        flex: 1,
-        lineHeight: 20,
+    pillText: {
+        color: '#FFF',
+        fontSize: 12,
+        fontWeight: '800',
+        letterSpacing: 1,
     },
     captureButtonContainer: {
         position: 'absolute',
-        bottom: 50,
+        bottom: 30,
         alignSelf: 'center',
         zIndex: 20,
     },
     captureButtonOuter: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        borderWidth: 4,
-        borderColor: '#F7F8F7',
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        borderWidth: 6,
+        borderColor: '#FFF',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'transparent',
     },
     captureButtonInner: {
-        width: 54,
-        height: 54,
-        borderRadius: 27,
-        backgroundColor: '#F7F8F7',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        width: 68,
+        height: 68,
+        borderRadius: 34,
+        backgroundColor: '#FFF',
+        opacity: 0.9,
     },
     reticleContainer: {
         ...StyleSheet.absoluteFillObject,
@@ -338,27 +274,13 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     reticleBox: {
-        width: 250,
-        height: 350,
+        width: 240,
+        height: 240,
         justifyContent: 'space-between',
-        backgroundColor: 'rgba(160, 211, 155, 0.05)',
-        borderWidth: 1,
-        borderColor: 'rgba(160, 211, 155, 0.2)',
+        position: 'relative',
     },
-    scanLine: {
-        position: 'absolute',
-        top: '50%',
-        left: -10,
-        right: -10,
-        height: 2,
-        backgroundColor: 'rgba(160, 211, 155, 0.8)',
-        shadowColor: '#A0D39B',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 10,
-    },
-    cornerTL: { position: 'absolute', top: -2, left: -2, width: 30, height: 30, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderTopLeftRadius: 12 },
-    cornerTR: { position: 'absolute', top: -2, right: -2, width: 30, height: 30, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderTopRightRadius: 12 },
-    cornerBL: { position: 'absolute', bottom: -2, left: -2, width: 30, height: 30, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderBottomLeftRadius: 12 },
-    cornerBR: { position: 'absolute', bottom: -2, right: -2, width: 30, height: 30, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderBottomRightRadius: 12 },
+    cornerTL: { position: 'absolute', top: -0, left: -0, width: 30, height: 30, borderTopWidth: 3, borderLeftWidth: 3, borderColor: '#69D6B3' },
+    cornerTR: { position: 'absolute', top: -0, right: -0, width: 30, height: 30, borderTopWidth: 3, borderRightWidth: 3, borderColor: '#69D6B3' },
+    cornerBL: { position: 'absolute', bottom: -0, left: -0, width: 30, height: 30, borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#69D6B3' },
+    cornerBR: { position: 'absolute', bottom: -0, right: -0, width: 30, height: 30, borderBottomWidth: 3, borderRightWidth: 3, borderColor: '#69D6B3' },
 });

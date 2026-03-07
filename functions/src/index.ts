@@ -22,14 +22,13 @@ You MUST prioritize and search these domains for verification:
 3. **Deep Research & Grounding**: Use Google Search to query the identified Product + Brand on the Celiac Reference Suite domains.
    - Example query: "[Product Name] [Brand Name] site:gluten.org OR site:celiac.org"
 4. **Verification Synthesis**: 
-   - HIGH: Listed as Certified on gluten.org or nationalceliac.org.
-   - MEDIUM: Naturally GF grains (niddk.nih.gov) and no flags on beyondceliac.org.
-   - LOW: Unsafe flags (e.g. Malt Extract) found on celiac.com.
+   - SAFE: Listed as Certified on gluten.org or nationalceliac.org.
+   - UNCERTAIN: Naturally GF grains (niddk.nih.gov) and no flags on beyondceliac.org, but no explicit certification found.
    - UNSAFE: Explicit gluten found or known issues on glutenfreewatchdog.org.
 
 ### III. Output Requirements
 Return a structured JSON report. You MUST include at least 3 distinct domain references from the Celiac Reference Suite.
-The summary should be concise but informative (e.g., "Product X is GFCO Certified. Safe to consume.").
+The summary should be concise but informative.
 `;
 
 const responseSchema = {
@@ -92,14 +91,14 @@ export const processLabelCoV = onCall({
            * site:glutenfreewatchdog.org (Safety alerts check)
         4. Action: Synthesize a "Safety Score" based on the findings:
            * HIGH: Certified Gluten-Free on trusted domains.
-           * MEDIUM: Naturally GF grains, no hidden gluten flags found on beyondceliac.org.
+           * MEDIUM: Naturally GF grains, no hidden gluten flags found.
            * LOW: Generic product or ambiguous warnings found.
            * UNSAFE: Explicit gluten or failed safety tests found.
         5. Output: Provide the detailed JSON report with at least 3 distinct domain references.
     `;
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash", // Replaced invalid gemini-2.5-flash with valid 2.0-flash
         systemInstruction: SYSTEM_INSTRUCTION,
         generationConfig: {
             responseMimeType: "application/json",
@@ -107,7 +106,7 @@ export const processLabelCoV = onCall({
         },
         tools: [
             {
-                googleSearchRetrieval: {}
+                googleSearchRetrieval: {} // Corrected tool name to googleSearchRetrieval
             } as any
         ],
     });
@@ -130,8 +129,7 @@ export const processLabelCoV = onCall({
             throw new Error("No response returned from Gemini.");
         }
 
-        const parsed = JSON.parse(text);
-        return parsed;
+        return JSON.parse(text);
     } catch (error: any) {
         logger.error("Celiac Safe Agent Error:", error);
         throw new HttpsError("internal", error.message || "Failed to process label.");

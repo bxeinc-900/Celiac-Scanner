@@ -41,13 +41,29 @@ export default function App() {
 
   const handleCapture = async ({ path, scanMode }: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => {
     setIsProcessing(true);
+    setResult(null);
 
-    // Call the engine with scanMode
-    const analysisResult = await CeliacSafeReferenceEngine.process(path, scanMode);
-
-    setResult(analysisResult);
-    setIsProcessing(false);
-    // setShowModal(true); // Redundant now as AnalysisOverlay handles results
+    try {
+      // Call the engine with scanMode
+      const analysisResult = await CeliacSafeReferenceEngine.process(path, scanMode);
+      setResult(analysisResult);
+    } catch (e: any) {
+      console.error("Capture Failed:", e);
+      // Fallback for user feedback
+      setResult({
+        status: 'Uncertain',
+        productName: 'Analysis Failed',
+        brand: 'Service Error',
+        summary: `The AI Engine is currently unavailable or returned an error: ${e.message}`,
+        certaintyRating: 'Low',
+        flaggedIngredients: [],
+        ingredients: [],
+        warnings: ['Check internet connection', 'Ensure GEMINI_API_KEY is active'],
+        references: []
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -109,28 +125,9 @@ export default function App() {
           </View>
 
           {/* BELOW PANEL INSTRUCTIONS */}
-          <View style={styles.instructionSection}>
-            <Text style={styles.instructionHeader}>Celiac Safety Scanner</Text>
-
-            <View style={styles.instructionStep}>
-              <View style={styles.stepIconContainer}>
-                <Text style={styles.stepIconText}>1</Text>
-              </View>
-              <View style={styles.stepTextContainer}>
-                <Text style={styles.stepTitle}>Scan & Verify</Text>
-                <Text style={styles.stepDescription}>
-                  Take a photo of the front of the packaging or the label ingredients and our AI will scan for gluten and celiac safe.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.infoCard}>
-              <Text style={styles.infoIcon}>🛡️</Text>
-              <Text style={styles.infoText}>
-                Always double-check results if you notice any unusual symptoms. Safety is our priority.
-              </Text>
-            </View>
-          </View>
+          <Text style={styles.instructionTextBelow}>
+            Take a picture of the front of the packaging you would like to scan.
+          </Text>
 
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -138,19 +135,19 @@ export default function App() {
         {/* BOTTOM NAVIGATION */}
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem}>
-            <Camera color="#2A422B" size={32} strokeWidth={2.5} />
+            <Camera color="#2A422B" size={28} strokeWidth={2.5} />
             <Text style={styles.navText}>SCAN</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Map color="#2A422B" size={32} strokeWidth={2.5} />
+            <Map color="#2A422B" size={28} strokeWidth={2} />
             <Text style={styles.navText}>EATERIES</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <ChefHat color="#2A422B" size={32} strokeWidth={2.5} />
+            <ChefHat color="#2A422B" size={28} strokeWidth={2} />
             <Text style={styles.navText}>RECIPES</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <ClipboardList color="#2A422B" size={32} strokeWidth={2.5} />
+            <ClipboardList color="#2A422B" size={28} strokeWidth={2} />
             <Text style={styles.navText}>MY LOGS</Text>
           </TouchableOpacity>
         </View>
@@ -162,26 +159,27 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F3E8', // Creamy color from mockup
+    backgroundColor: '#FFFFFF', // Clean white background for main area
   },
   container: {
     flex: 1,
-    backgroundColor: '#F5F3E8',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    justifyContent: 'space-between',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
-    backgroundColor: '#F5F3E8',
-    height: 80,
+    backgroundColor: '#FFFFFF',
+    height: 90,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
   },
   headerSideButton: {
-    width: 50,
+    width: 60,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -197,22 +195,23 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   logo: {
-    width: 180, // More compact for mobile
-    height: 54,
+    width: 140,
+    height: 48,
+    marginTop: 10,
   },
   headerIconText: {
-    color: '#2A422B',
+    color: '#8E9AAF', // More muted text color for header icons
     fontSize: 10,
-    fontWeight: '700',
-    marginTop: 2,
+    fontWeight: '800',
+    marginTop: 4,
     textTransform: 'uppercase',
   },
   mainContent: {
     flex: 1,
-    backgroundColor: '#F5F3E8',
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 20,
     alignItems: 'center',
@@ -220,114 +219,49 @@ const styles = StyleSheet.create({
   cameraWindow: {
     width: '100%',
     maxWidth: 400,
-    height: 500, // Balanced height for the window
-    backgroundColor: '#1E1E1E',
-    borderRadius: 30,
+    height: 480,
+    backgroundColor: '#0A0E1A', // Darker blue-black from mockup
+    borderRadius: 36,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.15,
+    shadowRadius: 25,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    marginBottom: 30, // Space between panel and instructions
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   cameraFrame: {
     flex: 1,
   },
-  instructionSection: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#1B3022',
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
-  instructionHeader: {
-    color: '#F7F8F7',
-    fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 20,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  instructionStep: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    backgroundColor: 'rgba(247, 248, 247, 0.05)',
-    padding: 16,
-    borderRadius: 20,
-    alignItems: 'flex-start',
-  },
-  stepIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#A0D39B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    marginTop: 2,
-  },
-  stepIconText: {
-    color: '#1B3022',
-    fontWeight: '900',
+  instructionTextBelow: {
+    color: '#8E9AAF',
     fontSize: 16,
-  },
-  stepTextContainer: {
-    flex: 1,
-  },
-  stepTitle: {
-    color: '#F7F8F7',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  stepDescription: {
-    color: 'rgba(247, 248, 247, 0.7)',
-    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 10,
     lineHeight: 22,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(160, 211, 155, 0.1)',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(160, 211, 155, 0.2)',
-    alignItems: 'center',
-  },
-  infoIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  infoText: {
-    color: '#A0D39B',
-    fontSize: 14,
-    flex: 1,
-    lineHeight: 20,
+    paddingHorizontal: 20,
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 16,
-    backgroundColor: '#F5F3E8',
+    paddingVertical: 18,
+    backgroundColor: '#F9F8F3', // Light beige from mockup
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+    borderTopColor: 'rgba(0,0,0,0.04)',
   },
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
   },
   navText: {
     color: '#2A422B',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   }
 });
 
