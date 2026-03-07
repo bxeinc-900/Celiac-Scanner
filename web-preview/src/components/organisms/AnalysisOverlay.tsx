@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { ShieldCheck, ShieldAlert, ShieldQuestion, ExternalLink, X, Info, Save } from 'lucide-react';
 import type { CeliacSafetyReport } from '../../services/ai_engine/celiacSafeReferenceEngine';
 
@@ -16,6 +16,7 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
 
     const renderLoading = () => (
         <View style={styles.cardContent}>
+            <ActivityIndicator size="large" color="#A0D39B" style={{ marginBottom: 30 }} />
             <Text style={styles.scanningText}>Sifting Ingredients...</Text>
             <View style={styles.skeletonLine} />
             <View style={styles.skeletonLineShort} />

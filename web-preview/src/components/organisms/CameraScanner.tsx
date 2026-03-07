@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FC } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 interface CameraScannerProps {
     onCapture: (photo: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => void;
@@ -95,12 +95,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     }
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* Camera Section */}
+        <View style={styles.container}>
             <View style={styles.cameraSection}>
                 <TouchableOpacity
                     activeOpacity={0.95}
@@ -138,35 +133,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                     </View>
                 </TouchableOpacity>
             </View>
-
-            {/* Instruction Section */}
-            <View style={styles.instructionSection}>
-                <View style={styles.handle} />
-
-                <Text style={styles.instructionHeader}>Celiac Safety Scanner</Text>
-
-                <View style={styles.instructionStep}>
-                    <View style={styles.stepIconContainer}>
-                        <Text style={styles.stepIconText}>1</Text>
-                    </View>
-                    <View style={styles.stepTextContainer}>
-                        <Text style={styles.stepTitle}>Scan & Verify</Text>
-                        <Text style={styles.stepDescription}>
-                            Take a photo of the front of the packaging or the label ingredients and our AI will scan for gluten and celiac safe.
-                        </Text>
-                    </View>
-                </View>
-
-                <View style={styles.infoCard}>
-                    <Text style={styles.infoIcon}>🛡️</Text>
-                    <Text style={styles.infoText}>
-                        Always double-check results if you notice any unusual symptoms. Safety is our priority.
-                    </Text>
-                </View>
-
-                <View style={{ height: 40 }} />
-            </View>
-        </ScrollView>
+        </View>
     );
 };
 
@@ -186,12 +153,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
-    scrollContent: {
-        flexGrow: 1,
-        backgroundColor: '#111',
-    },
     cameraSection: {
-        height: 380, // Reduced height for the camera viewport
+        flex: 1,
         width: '100%',
         position: 'relative',
         backgroundColor: '#000',
@@ -259,10 +222,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#1B3022',
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        marginTop: -30, // Overlap camera slightly
+        marginTop: -24, // Overlap camera section slightly for integrated look
         padding: 24,
-        paddingTop: 12,
-        minHeight: 400,
+        paddingTop: 16,
+        flex: 1,
+        minHeight: 250,
     },
     handle: {
         width: 40,

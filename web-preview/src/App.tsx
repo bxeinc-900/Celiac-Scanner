@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import { CircleUser, ClipboardList, Camera, Map, ChefHat } from 'lucide-react';
 
 import { CameraScanner } from './components/organisms/CameraScanner';
@@ -86,8 +86,12 @@ export default function App() {
         </View>
 
         {/* MAIN CONTENT AREA */}
-        <View style={styles.mainContent}>
-          <View style={styles.cameraFrameWrapper}>
+        <ScrollView
+          style={styles.mainContent}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.cameraWindow}>
             <View style={styles.cameraFrame}>
               <CameraScanner onCapture={handleCapture} isProcessing={isProcessing} />
             </View>
@@ -103,7 +107,33 @@ export default function App() {
               />
             )}
           </View>
-        </View>
+
+          {/* BELOW PANEL INSTRUCTIONS */}
+          <View style={styles.instructionSection}>
+            <Text style={styles.instructionHeader}>Celiac Safety Scanner</Text>
+
+            <View style={styles.instructionStep}>
+              <View style={styles.stepIconContainer}>
+                <Text style={styles.stepIconText}>1</Text>
+              </View>
+              <View style={styles.stepTextContainer}>
+                <Text style={styles.stepTitle}>Scan & Verify</Text>
+                <Text style={styles.stepDescription}>
+                  Take a photo of the front of the packaging or the label ingredients and our AI will scan for gluten and celiac safe.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text style={styles.infoIcon}>🛡️</Text>
+              <Text style={styles.infoText}>
+                Always double-check results if you notice any unusual symptoms. Safety is our priority.
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
 
         {/* BOTTOM NAVIGATION */}
         <View style={styles.bottomNav}>
@@ -179,19 +209,106 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 0,
-    position: 'relative',
+    backgroundColor: '#F5F3E8',
   },
-  cameraFrameWrapper: {
-    flex: 1,
-    position: 'relative',
-    borderRadius: 24,
-    overflow: 'hidden',
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 20,
+    alignItems: 'center',
+  },
+  cameraWindow: {
+    width: '100%',
+    maxWidth: 400,
+    height: 500, // Balanced height for the window
     backgroundColor: '#1E1E1E',
+    borderRadius: 30,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 30, // Space between panel and instructions
   },
   cameraFrame: {
     flex: 1,
+  },
+  instructionSection: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#1B3022',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  instructionHeader: {
+    color: '#F7F8F7',
+    fontSize: 22,
+    fontWeight: '800',
+    marginBottom: 20,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  instructionStep: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    backgroundColor: 'rgba(247, 248, 247, 0.05)',
+    padding: 16,
+    borderRadius: 20,
+    alignItems: 'flex-start',
+  },
+  stepIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#A0D39B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    marginTop: 2,
+  },
+  stepIconText: {
+    color: '#1B3022',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  stepTextContainer: {
+    flex: 1,
+  },
+  stepTitle: {
+    color: '#F7F8F7',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  stepDescription: {
+    color: 'rgba(247, 248, 247, 0.7)',
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  infoCard: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(160, 211, 155, 0.1)',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(160, 211, 155, 0.2)',
+    alignItems: 'center',
+  },
+  infoIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  infoText: {
+    color: '#A0D39B',
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
   },
   bottomNav: {
     flexDirection: 'row',
