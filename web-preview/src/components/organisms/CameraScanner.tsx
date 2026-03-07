@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 interface CameraScannerProps {
-    onCapture: (photo: { path: string }) => void;
+    onCapture: (photo: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => void;
     isProcessing: boolean;
 }
 
@@ -11,6 +11,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     const videoRef = useRef<HTMLVideoElement>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
+    const [scanMode, setScanMode] = useState<'PRODUCT' | 'INGREDIENTS'>('PRODUCT');
 
     // Effect 1: Request camera stream
     const setupCamera = useCallback(async () => {
@@ -66,9 +67,9 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
         if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            onCapture({ path: dataUrl });
+            onCapture({ path: dataUrl, scanMode });
         }
-    }, [onCapture, isProcessing]);
+    }, [onCapture, isProcessing, scanMode]);
 
     if (hasPermission === false) {
         return (
@@ -112,7 +113,23 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                         <View style={styles.cornerBL} />
                         <View style={styles.cornerBR} />
                     </View>
-                    <Text style={styles.scanInstruction}>Align Ingredients and Tap to Scan</Text>
+                    <Text style={styles.scanInstruction}>Align {scanMode === 'PRODUCT' ? 'Product Front' : 'Ingredients List'} and Tap</Text>
+                </View>
+
+                {/* Scan Mode Toggle */}
+                <View style={styles.modeToggleContainer}>
+                    <TouchableOpacity
+                        style={[styles.modeTab, scanMode === 'PRODUCT' && styles.activeTab]}
+                        onPress={() => setScanMode('PRODUCT')}
+                    >
+                        <Text style={[styles.modeTabText, scanMode === 'PRODUCT' && styles.activeTabText]}>PRODUCT</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.modeTab, scanMode === 'INGREDIENTS' && styles.activeTab]}
+                        onPress={() => setScanMode('INGREDIENTS')}
+                    >
+                        <Text style={[styles.modeTabText, scanMode === 'INGREDIENTS' && styles.activeTabText]}>INGREDIENTS</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Capture Button */}
@@ -190,6 +207,31 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 25,
         overflow: 'hidden',
+    },
+    modeToggleContainer: {
+        position: 'absolute',
+        top: 120,
+        flexDirection: 'row',
+        backgroundColor: 'rgba(27, 48, 34, 0.4)',
+        borderRadius: 20,
+        padding: 4,
+        alignSelf: 'center',
+    },
+    modeTab: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 16,
+    },
+    activeTab: {
+        backgroundColor: '#F7F8F7',
+    },
+    modeTabText: {
+        color: '#F7F8F7',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    activeTabText: {
+        color: '#2A422B',
     },
     captureButtonContainer: {
         position: 'absolute',

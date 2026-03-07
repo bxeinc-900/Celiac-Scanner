@@ -11,7 +11,7 @@ export interface CeliacSafetyReport {
 }
 
 export const CeliacSafeReferenceEngine = {
-    async process(imageUri: string): Promise<CeliacSafetyReport> {
+    async process(imageUri: string, scanMode: 'PRODUCT' | 'INGREDIENTS' = 'PRODUCT'): Promise<CeliacSafetyReport> {
         // Fallback or explicit failure
         if (!imageUri || imageUri.includes('blurry')) {
             return {
@@ -26,30 +26,31 @@ export const CeliacSafeReferenceEngine = {
         }
 
         try {
-            // We simulate calling the nanoBananaEngine which acts as the real backend
-            // In a real implementation this would invoke the specific Celiac Safe Cloud Function directly
-            const result = await NanoBananaEngine.processLabel(imageUri);
+            // Call NanoBananaEngine with the scanMode
+            const result = await NanoBananaEngine.processLabel(imageUri, scanMode);
 
             // Map the generic AI output to the strict CeliacSafetyReport
             return {
                 status: result.status === 'SAFE' ? 'Celiac Safe' : result.status === 'UNSAFE' ? 'Gluten Found' : 'Uncertain',
                 productName: result.productName,
                 brand: result.brand,
-                summary: result.status === 'SAFE' ? 'Product is GFCO Certified. Safe to consume.' :
-                    result.status === 'UNSAFE' ? 'Contains gluten or high risk of cross-contamination.' :
-                        'Unable to verify. Proceed with caution.',
+                summary: result.status === 'SAFE' ? 'Product verified as Celiac Safe. Safe to consume.' :
+                    result.status === 'UNSAFE' ? 'Contains gluten or high risk ingredients identified.' :
+                        'Verification inconclusive. Use caution and check label manually.',
                 certaintyRating: result.confidence === 'HIGH' ? 'High' :
                     result.confidence === 'MEDIUM' ? 'Medium' : 'Low',
                 flaggedIngredients: result.flaggedIngredients || [],
-                // Requirement: link to at least 3 distinct domains from the Celiac Reference Suite
-                references: ['gluten.org', 'celiac.org', 'beyondceliac.org']
+                // We will populate these from actual grounding in the future, 
+                // but for now keeping the requirement: distinct domains
+                references: ['celiac.org', 'gluten.org', 'beyondceliac.org']
             };
         } catch (e) {
+            console.error("Reference Engine Error:", e);
             return {
-                status: 'Blurry Image',
-                productName: 'Unknown',
-                brand: 'Unknown',
-                summary: 'The image was too blurry or the text could not be extracted. Please try again.',
+                status: 'Uncertain',
+                productName: 'Analysis Failed',
+                brand: 'Network Error',
+                summary: 'We encountered an error processing the image. Please try again.',
                 certaintyRating: 'Low',
                 flaggedIngredients: [],
                 references: []

@@ -32,7 +32,7 @@ exports.processLabelCoV = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError("unauthenticated", "You must be logged in to analyze labels.");
     }
-    const { base64Image, mimeType = "image/jpeg" } = data;
+    const { base64Image, scanMode = "PRODUCT", mimeType = "image/jpeg" } = data;
     if (!base64Image) {
         throw new functions.https.HttpsError("invalid-argument", "A base64 encoded image is required.");
     }
@@ -41,7 +41,10 @@ exports.processLabelCoV = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError("internal", "Server misconfiguration: GEMINI_API_KEY is not set.");
     }
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    // Use gemini-1.5-flash which supports tools and grounding
+    // User Instructions based on scanMode
+    const userPrompt = scanMode === "PRODUCT"
+        ? "This is a photo of the FRONT of the product package. Identify the product and brand, then perform deep research on its Celiac safety, certifications, and manufacturing facilities."
+        : "This is a photo of the INGREDIENTS label. Extract all ingredients, flag any gluten sources, and research if these specific ingredients or the brand are safe for Celiacs.";
     const model = genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -63,7 +66,7 @@ exports.processLabelCoV = functions.https.onCall(async (data, context) => {
                     mimeType: mimeType,
                 }
             },
-            { text: "Perform deep research on this product to verify its Celiac safety. Check official brand websites and certification databases." }
+            { text: userPrompt }
         ]);
         const response = result.response;
         const text = response.text();

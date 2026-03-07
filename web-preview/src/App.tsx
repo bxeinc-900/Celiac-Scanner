@@ -41,11 +41,11 @@ export default function App() {
     return <LoginScreen />;
   }
 
-  const handleCapture = async (photo: any) => {
+  const handleCapture = async ({ path, scanMode }: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => {
     setIsProcessing(true);
 
-    // Call the engine
-    const analysisResult = await CeliacSafeReferenceEngine.process(photo?.path || 'mock_uri');
+    // Call the engine with scanMode
+    const analysisResult = await CeliacSafeReferenceEngine.process(path, scanMode);
 
     setResult(analysisResult);
     setIsProcessing(false);
