@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FC } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 interface CameraScannerProps {
     onCapture: (photo: { path: string }) => void;
@@ -10,38 +10,50 @@ interface CameraScannerProps {
 export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+    const [stream, setStream] = useState<MediaStream | null>(null);
 
+    // Effect 1: Request camera stream
     useEffect(() => {
         async function setupCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
+                const s = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
                 });
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                }
+                setStream(s);
                 setHasPermission(true);
             } catch (err) {
-                console.error("Camera access denied:", err);
+                console.error("Camera access denied or failed:", err);
                 setHasPermission(false);
             }
         }
         setupCamera();
 
         return () => {
-            if (videoRef.current && videoRef.current.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
+            if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
         };
     }, []);
 
+    // Effect 2: Attach stream to video element once both are available
+    useEffect(() => {
+        if (hasPermission && stream && videoRef.current) {
+            videoRef.current.srcObject = stream;
+        }
+    }, [hasPermission, stream]);
+
     const capturePhoto = useCallback(() => {
         if (!videoRef.current || isProcessing) return;
+
         const video = videoRef.current;
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+
         const ctx = canvas.getContext('2d');
         if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -53,7 +65,8 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     if (hasPermission === false) {
         return (
             <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Camera Permission Denied</Text>
+                <Text style={styles.errorText}>Camera Access Denied</Text>
+                <Text style={styles.subErrorText}>Please enable camera permissions in your browser settings.</Text>
             </View>
         );
     }
@@ -61,6 +74,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     if (hasPermission === null) {
         return (
             <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#F7F8F7" />
                 <Text style={styles.loadingText}>Requesting Camera Access...</Text>
             </View>
         );
@@ -72,39 +86,40 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
             onPress={capturePhoto}
             style={styles.container}
         >
-            <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={styles.videoWrapper}>
                 <video
                     ref={videoRef}
                     autoPlay
                     playsInline
                     muted
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                    }}
+                    style={webStyles.video}
                 />
 
-                {/* Reticle */}
+                {/* Visual Overlay remains same */}
                 <View style={styles.reticleContainer}>
                     <View style={styles.reticleBox}>
                         <View style={styles.cornerTL} />
                         <View style={styles.cornerTR} />
-
-                        {/* Horizontal scanning line animation mock */}
                         <View style={styles.scanLine} />
-
                         <View style={styles.cornerBL} />
                         <View style={styles.cornerBR} />
                     </View>
+                    <Text style={styles.scanInstruction}>Align Ingredients and Tap to Scan</Text>
                 </View>
-
             </View>
         </TouchableOpacity>
     );
+};
+
+const webStyles = {
+    video: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover'
+    } as any
 };
 
 const styles = StyleSheet.create({
@@ -112,16 +127,50 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
+    videoWrapper: {
+        flex: 1,
+        width: '100%',
+        backgroundColor: '#000',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#1B3022',
+        padding: 20,
     },
     loadingText: {
         color: '#F7F8F7',
         fontSize: 18,
         fontWeight: '600',
+        marginTop: 16,
+    },
+    errorText: {
+        color: '#FF6B6B',
+        fontSize: 20,
+        fontWeight: '700',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    subErrorText: {
+        color: '#A0D39B',
+        fontSize: 14,
+        textAlign: 'center',
+        opacity: 0.8,
+    },
+    scanInstruction: {
+        position: 'absolute',
+        bottom: 40,
+        color: '#F7F8F7',
+        fontSize: 16,
+        fontWeight: '600',
+        backgroundColor: 'rgba(27, 48, 34, 0.8)',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 25,
+        overflow: 'hidden',
     },
     reticleContainer: {
         ...StyleSheet.absoluteFillObject,
