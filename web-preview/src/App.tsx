@@ -19,6 +19,7 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<'SCAN' | 'HISTORY' | 'EATERIES' | 'RECIPES'>('SCAN');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<CeliacSafetyReport | null>(null);
+  const [scanMode, setScanMode] = useState<'PRODUCT' | 'INGREDIENTS'>('PRODUCT');
 
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -44,7 +45,7 @@ export default function App() {
     return <LoginScreen />;
   }
 
-  const handleCapture = async ({ path, scanMode }: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => {
+  const handleCapture = async (path: string) => {
     setIsProcessing(true);
     setResult(null);
 
@@ -154,8 +155,24 @@ export default function App() {
 
             {/* BELOW PANEL INSTRUCTIONS */}
             <Text style={styles.instructionTextBelow}>
-              Take a picture of the front of the packaging you would like to scan.
+              Align {scanMode === 'PRODUCT' ? 'Product Front' : 'Ingredients List'} and Tap
             </Text>
+
+            {/* Scan Mode Toggle */}
+            <View style={styles.modeToggleContainer}>
+              <TouchableOpacity
+                style={[styles.modeTab, scanMode === 'PRODUCT' && styles.activeTab]}
+                onPress={() => setScanMode('PRODUCT')}
+              >
+                <Text style={[styles.modeTabText, scanMode === 'PRODUCT' && styles.activeTabText]}>PRODUCT</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modeTab, scanMode === 'INGREDIENTS' && styles.activeTab]}
+                onPress={() => setScanMode('INGREDIENTS')}
+              >
+                <Text style={[styles.modeTabText, scanMode === 'INGREDIENTS' && styles.activeTabText]}>INGREDIENTS</Text>
+              </TouchableOpacity>
+            </View>
 
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -287,6 +304,33 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     lineHeight: 22,
     paddingHorizontal: 20,
+  },
+  modeToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F9F8F3',
+    borderRadius: 20,
+    padding: 4,
+    alignSelf: 'center',
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  modeTab: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  activeTab: {
+    backgroundColor: '#2A422B', // Dark green active
+  },
+  modeTabText: {
+    color: '#8E9AAF',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  activeTabText: {
+    color: '#FFFFFF', // White text on dark green
   },
   bottomNav: {
     flexDirection: 'row',
