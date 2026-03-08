@@ -96,7 +96,9 @@ export default function App() {
         <View style={styles.header}>
           {/* Left: Profile Icon */}
           <TouchableOpacity style={styles.headerSideButton}>
-            <CircleUser color="#2A422B" size={32} strokeWidth={2} />
+            <View pointerEvents="none" style={{ alignItems: 'center' }}>
+              <CircleUser color="#2A422B" size={32} strokeWidth={2} />
+            </View>
           </TouchableOpacity>
 
           {/* Center: Logo */}
@@ -113,8 +115,10 @@ export default function App() {
             style={styles.headerSideButton}
             onPress={() => setCurrentTab('HISTORY')}
           >
-            <ClipboardList color="#2A422B" size={32} strokeWidth={2} />
-            <Text style={styles.headerIconText}>History</Text>
+            <View pointerEvents="none" style={{ alignItems: 'center' }}>
+              <ClipboardList color="#2A422B" size={32} strokeWidth={2} />
+              <Text style={styles.headerIconText}>History</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -163,29 +167,37 @@ export default function App() {
             style={styles.navItem}
             onPress={() => setCurrentTab('SCAN')}
           >
-            <Camera color={currentTab === 'SCAN' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2.5} />
-            <Text style={[styles.navText, currentTab === 'SCAN' && { color: '#A0D39B' }]}>SCAN</Text>
+            <View pointerEvents="none" style={styles.navItemInner}>
+              <Camera color={currentTab === 'SCAN' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2.5} />
+              <Text style={[styles.navText, currentTab === 'SCAN' && { color: '#A0D39B' }]}>SCAN</Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => setCurrentTab('EATERIES')}
           >
-            <Map color={currentTab === 'EATERIES' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
-            <Text style={[styles.navText, currentTab === 'EATERIES' && { color: '#A0D39B' }]}>EATERIES</Text>
+            <View pointerEvents="none" style={styles.navItemInner}>
+              <Map color={currentTab === 'EATERIES' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+              <Text style={[styles.navText, currentTab === 'EATERIES' && { color: '#A0D39B' }]}>EATERIES</Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => setCurrentTab('RECIPES')}
           >
-            <ChefHat color={currentTab === 'RECIPES' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
-            <Text style={[styles.navText, currentTab === 'RECIPES' && { color: '#A0D39B' }]}>RECIPES</Text>
+            <View pointerEvents="none" style={styles.navItemInner}>
+              <ChefHat color={currentTab === 'RECIPES' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+              <Text style={[styles.navText, currentTab === 'RECIPES' && { color: '#A0D39B' }]}>RECIPES</Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => setCurrentTab('HISTORY')}
           >
-            <ClipboardList color={currentTab === 'HISTORY' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
-            <Text style={[styles.navText, currentTab === 'HISTORY' && { color: '#A0D39B' }]}>MY LOGS</Text>
+            <View pointerEvents="none" style={styles.navItemInner}>
+              <ClipboardList color={currentTab === 'HISTORY' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+              <Text style={[styles.navText, currentTab === 'HISTORY' && { color: '#A0D39B' }]}>MY LOGS</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -223,14 +235,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   logoCenterContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
   },
   logo: {
     width: 280,
@@ -285,12 +292,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 18,
+    paddingTop: 18,
+    paddingBottom: 24,
     backgroundColor: '#F9F8F3', // Light beige from mockup
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.04)',
+    zIndex: 1000,
   },
   navItem: {
+    flex: 1, // Give equal space for hit area
+  },
+  navItemInner: {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
