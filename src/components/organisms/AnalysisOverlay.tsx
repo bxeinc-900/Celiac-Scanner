@@ -17,11 +17,12 @@ interface AnalysisOverlayProps {
     isProcessing: boolean;
     result: AnalysisResult | null;
     onClose: () => void;
+    onSave?: () => void;
 }
 
 const { height } = Dimensions.get('window');
 
-export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({ isVisible, isProcessing, result, onClose }) => {
+export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({ isVisible, isProcessing, result, onClose, onSave }) => {
     const slideAnim = useRef(new Animated.Value(height)).current;
 
     useEffect(() => {
@@ -96,9 +97,16 @@ export const AnalysisOverlay: React.FC<AnalysisOverlayProps> = ({ isVisible, isP
                         ))}
                     </View>
 
-                    <TouchableOpacity onPress={onClose} style={styles.actionButton}>
-                        <Text style={styles.actionButtonText}>Scan Another Product</Text>
-                    </TouchableOpacity>
+                    <View style={styles.actionRow}>
+                        {onSave && (
+                            <TouchableOpacity onPress={onSave} style={styles.saveButton}>
+                                <Text style={styles.saveButtonText}>Save to History</Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity onPress={onClose} style={styles.actionButton}>
+                            <Text style={styles.actionButtonText}>Scan Another</Text>
+                        </TouchableOpacity>
+                    </View>
                 </ScrollView>
             ) : null}
         </Animated.View>
@@ -230,8 +238,25 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold'
     },
-    actionButton: {
+    actionRow: {
+        flexDirection: 'row',
         marginTop: 20,
+        gap: 12,
+    },
+    saveButton: {
+        flex: 1,
+        backgroundColor: '#A0D39B',
+        borderRadius: 12,
+        padding: 16,
+    },
+    saveButtonText: {
+        color: '#1B3022',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    actionButton: {
+        flex: 1,
         backgroundColor: '#1B3022',
         borderRadius: 12,
         padding: 16,

@@ -10,8 +10,11 @@ import { onAuthStateChanged } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { auth } from './services/firebase';
 import { LoginScreen } from './components/organisms/LoginScreen';
+import { HistoryScreen } from './components/organisms/HistoryScreen';
+import { saveScanToHistory } from './services/historyService';
 
 export default function App() {
+  const [currentTab, setCurrentTab] = useState<'SCAN' | 'HISTORY'>('SCAN');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<CeliacSafetyReport | null>(null);
 
@@ -70,9 +73,18 @@ export default function App() {
     setTimeout(() => setResult(null), 100);
   };
 
-  const handleSaveToHistory = () => {
-    console.log("Saved to history!");
-    handleCloseModal();
+  const handleSaveToHistory = async () => {
+    try {
+      if (result) {
+        await saveScanToHistory(result);
+        console.log("Saved to history successfully");
+      }
+    } catch (e) {
+      console.error("Failed to save to history", e);
+    } finally {
+      handleCloseModal();
+      setCurrentTab('HISTORY');
+    }
   };
 
   return (
@@ -86,7 +98,7 @@ export default function App() {
           </TouchableOpacity>
 
           {/* Center: Logo */}
-          <View style={styles.logoCenterContainer}>
+          <View style={styles.logoCenterContainer} pointerEvents="none">
             <Image
               source={{ uri: '/logo-trans.png' }}
               style={styles.logo}
@@ -95,48 +107,58 @@ export default function App() {
           </View>
 
           {/* Right: History Icon */}
-          <TouchableOpacity style={styles.headerSideButton}>
+          <TouchableOpacity
+            style={styles.headerSideButton}
+            onPress={() => setCurrentTab('HISTORY')}
+          >
             <ClipboardList color="#2A422B" size={32} strokeWidth={2} />
             <Text style={styles.headerIconText}>History</Text>
           </TouchableOpacity>
         </View>
 
         {/* MAIN CONTENT AREA */}
-        <ScrollView
-          style={styles.mainContent}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.cameraWindow}>
-            <View style={styles.cameraFrame}>
-              <CameraScanner onCapture={handleCapture} isProcessing={isProcessing} />
+        {currentTab === 'HISTORY' ? (
+          <HistoryScreen />
+        ) : (
+          <ScrollView
+            style={styles.mainContent}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.cameraWindow}>
+              <View style={styles.cameraFrame}>
+                <CameraScanner onCapture={handleCapture} isProcessing={isProcessing} />
+              </View>
+
+              {/* Analysis Overlay handles both loading and final report */}
+              {(isProcessing || result) && (
+                <AnalysisOverlay
+                  isVisible={isProcessing || !!result}
+                  isProcessing={isProcessing}
+                  result={result}
+                  onClose={handleCloseModal}
+                  onSave={handleSaveToHistory}
+                />
+              )}
             </View>
 
-            {/* Analysis Overlay handles both loading and final report */}
-            {(isProcessing || result) && (
-              <AnalysisOverlay
-                isVisible={isProcessing || !!result}
-                isProcessing={isProcessing}
-                result={result}
-                onClose={handleCloseModal}
-                onSave={handleSaveToHistory}
-              />
-            )}
-          </View>
+            {/* BELOW PANEL INSTRUCTIONS */}
+            <Text style={styles.instructionTextBelow}>
+              Take a picture of the front of the packaging you would like to scan.
+            </Text>
 
-          {/* BELOW PANEL INSTRUCTIONS */}
-          <Text style={styles.instructionTextBelow}>
-            Take a picture of the front of the packaging you would like to scan.
-          </Text>
-
-          <View style={{ height: 40 }} />
-        </ScrollView>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        )}
 
         {/* BOTTOM NAVIGATION */}
         <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem}>
-            <Camera color="#2A422B" size={28} strokeWidth={2.5} />
-            <Text style={styles.navText}>SCAN</Text>
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => setCurrentTab('SCAN')}
+          >
+            <Camera color={currentTab === 'SCAN' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2.5} />
+            <Text style={[styles.navText, currentTab === 'SCAN' && { color: '#A0D39B' }]}>SCAN</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
             <Map color="#2A422B" size={28} strokeWidth={2} />
@@ -146,9 +168,12 @@ export default function App() {
             <ChefHat color="#2A422B" size={28} strokeWidth={2} />
             <Text style={styles.navText}>RECIPES</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <ClipboardList color="#2A422B" size={28} strokeWidth={2} />
-            <Text style={styles.navText}>MY LOGS</Text>
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => setCurrentTab('HISTORY')}
+          >
+            <ClipboardList color={currentTab === 'HISTORY' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+            <Text style={[styles.navText, currentTab === 'HISTORY' && { color: '#A0D39B' }]}>MY LOGS</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -174,15 +199,16 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     backgroundColor: '#FFFFFF',
-    height: 90,
+    height: 110,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.03)',
   },
   headerSideButton: {
-    width: 60,
+    width: 70,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+    position: 'relative',
   },
   logoCenterContainer: {
     position: 'absolute',
@@ -195,8 +221,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   logo: {
-    width: 140,
-    height: 48,
+    width: 280,
+    height: 96,
     marginTop: 10,
   },
   headerIconText: {
