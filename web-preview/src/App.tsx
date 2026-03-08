@@ -11,10 +11,12 @@ import type { User } from 'firebase/auth';
 import { auth } from './services/firebase';
 import { LoginScreen } from './components/organisms/LoginScreen';
 import { HistoryScreen } from './components/organisms/HistoryScreen';
+import { EateriesScreen } from './components/organisms/EateriesScreen';
+import { RecipesScreen } from './components/organisms/RecipesScreen';
 import { saveScanToHistory } from './services/historyService';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<'SCAN' | 'HISTORY'>('SCAN');
+  const [currentTab, setCurrentTab] = useState<'SCAN' | 'HISTORY' | 'EATERIES' | 'RECIPES'>('SCAN');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<CeliacSafetyReport | null>(null);
 
@@ -119,6 +121,10 @@ export default function App() {
         {/* MAIN CONTENT AREA */}
         {currentTab === 'HISTORY' ? (
           <HistoryScreen />
+        ) : currentTab === 'EATERIES' ? (
+          <EateriesScreen />
+        ) : currentTab === 'RECIPES' ? (
+          <RecipesScreen />
         ) : (
           <ScrollView
             style={styles.mainContent}
@@ -160,13 +166,19 @@ export default function App() {
             <Camera color={currentTab === 'SCAN' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2.5} />
             <Text style={[styles.navText, currentTab === 'SCAN' && { color: '#A0D39B' }]}>SCAN</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Map color="#2A422B" size={28} strokeWidth={2} />
-            <Text style={styles.navText}>EATERIES</Text>
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => setCurrentTab('EATERIES')}
+          >
+            <Map color={currentTab === 'EATERIES' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+            <Text style={[styles.navText, currentTab === 'EATERIES' && { color: '#A0D39B' }]}>EATERIES</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <ChefHat color="#2A422B" size={28} strokeWidth={2} />
-            <Text style={styles.navText}>RECIPES</Text>
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => setCurrentTab('RECIPES')}
+          >
+            <ChefHat color={currentTab === 'RECIPES' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+            <Text style={[styles.navText, currentTab === 'RECIPES' && { color: '#A0D39B' }]}>RECIPES</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
