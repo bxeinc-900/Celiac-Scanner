@@ -37,27 +37,30 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
         const accentColor = isUnsafe ? '#ff8a80' : '#A0D39B';
 
         return (
-            <View style={[styles.reportCard, { backgroundColor: cardBg, borderColor: isUnsafe ? 'rgba(255,59,48,0.3)' : 'rgba(255,255,255,0.14)' }]}>
-                <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                    <X color="#FFF" size={24} />
-                </TouchableOpacity>
+            <View style={[styles.reportCard, { backgroundColor: cardBg }]}>
+                <View style={styles.headerRow}>
+                    <Text style={styles.headerTitle}>Safety Analysis</Text>
+                    <TouchableOpacity style={styles.closeIconButton} onPress={onClose}>
+                        <X color="#FFF" size={24} />
+                    </TouchableOpacity>
+                </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                     <View style={[styles.iconBadge, { backgroundColor: themeColor }]}>
-                        {isSafe ? <ShieldCheck color="#FFF" size={48} /> :
-                            isUnsafe ? <Skull color="#FFF" size={48} /> :
-                                <ShieldQuestion color="#FFF" size={48} />}
+                        {isSafe ? <ShieldCheck color="#FFF" size={64} /> :
+                            isUnsafe ? <Skull color="#FFF" size={64} /> :
+                                <ShieldQuestion color="#FFF" size={64} />}
                     </View>
 
-                    <Text style={styles.statusText}>{result.status}</Text>
+                    <Text style={[styles.statusText, { color: themeColor }]}>{result.status}</Text>
                     <Text style={styles.productName}>{result.brand} {result.productName}</Text>
 
                     <View style={styles.divider} />
 
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Info size={18} color={accentColor} />
-                            <Text style={[styles.sectionTitle, { color: accentColor }]}>Findings Report</Text>
+                            <Info size={22} color={accentColor} />
+                            <Text style={[styles.sectionTitle, { color: accentColor }]}>Detailed Findings</Text>
                         </View>
                         <Text style={styles.summaryText}>{result.summary}</Text>
                     </View>
@@ -91,19 +94,19 @@ export const AnalysisOverlay: FC<AnalysisOverlayProps> = ({ isVisible, isProcess
                                     }}
                                 >
                                     <Text style={styles.refText}>{ref}</Text>
-                                    <ExternalLink size={12} color={accentColor} />
+                                    <ExternalLink size={14} color={accentColor} />
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
 
                     <View style={styles.actionRow}>
-                        <TouchableOpacity style={styles.secondaryButton} onPress={onClose}>
-                            <Text style={styles.secondaryButtonText}>Close</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={[styles.primaryButton, { backgroundColor: themeColor }]} onPress={onSave}>
-                            <Save size={18} color="#FFF" />
-                            <Text style={styles.primaryButtonText}>Save to History</Text>
+                            <Save size={20} color="#FFF" />
+                            <Text style={styles.primaryButtonText}>Capture to History</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.secondaryButton} onPress={onClose}>
+                            <Text style={styles.secondaryButtonText}>Back to Scanner</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -125,222 +128,222 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(10, 20, 12, 0.9)', // Deep forest glass
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: 'rgba(10, 20, 12, 1)', // Solid background for full-screen
         zIndex: 2000,
-        padding: 20
     },
     cardContent: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
         padding: 40,
-        backgroundColor: '#1B3022',
-        borderRadius: 24,
-        width: '90%',
-        maxWidth: 400,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
     },
     reportCard: {
-        backgroundColor: '#1B3022',
-        borderRadius: 24,
-        width: '90%',
-        maxWidth: 450,
-        maxHeight: '85%',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.14)',
-        overflow: 'hidden',
-        position: 'relative'
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: Platform.OS === 'ios' ? 60 : 40,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.05)',
+    },
+    headerTitle: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 14,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 2
+    },
+    closeIconButton: {
+        padding: 8,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 20
     },
     scrollContent: {
         padding: 24,
+        paddingBottom: 100,
         alignItems: 'center'
     },
-    closeButton: {
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        zIndex: 10,
-        padding: 8,
-        backgroundColor: 'rgba(0,0,0,0.2)',
-        borderRadius: 20
-    },
     iconBadge: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 24,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.4,
+        shadowRadius: 15,
+        elevation: 10
     },
     statusText: {
-        color: '#FFF',
-        fontSize: 24,
+        fontSize: 32,
         fontWeight: '900',
         textTransform: 'uppercase',
-        letterSpacing: 2,
-        marginBottom: 4
+        letterSpacing: 3,
+        marginBottom: 8,
+        textAlign: 'center'
     },
     productName: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 16,
+        color: '#FFF',
+        fontSize: 20,
         fontWeight: '600',
         textAlign: 'center',
-        marginBottom: 20
+        marginBottom: 32,
+        opacity: 0.8,
+        paddingHorizontal: 20
     },
     divider: {
         height: 1,
         width: '100%',
         backgroundColor: 'rgba(255,255,255,0.1)',
-        marginBottom: 20
+        marginBottom: 32
     },
     section: {
         width: '100%',
-        marginBottom: 20
+        marginBottom: 32
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        marginBottom: 8
+        gap: 12,
+        marginBottom: 12
     },
     sectionTitle: {
-        color: '#A0D39B',
-        fontSize: 14,
-        fontWeight: '800',
+        fontSize: 16,
+        fontWeight: '900',
         textTransform: 'uppercase',
-        letterSpacing: 1
+        letterSpacing: 1.5
     },
     summaryText: {
         color: '#FFF',
-        fontSize: 16,
-        lineHeight: 24,
-        opacity: 0.9
+        fontSize: 18,
+        lineHeight: 28,
+        opacity: 0.95,
+        textAlign: 'left'
     },
     warningBox: {
         width: '100%',
-        backgroundColor: 'rgba(211, 47, 47, 0.15)',
-        borderLeftWidth: 4,
-        borderLeftColor: '#D32F2F',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16
+        backgroundColor: 'rgba(255, 59, 48, 0.15)',
+        borderLeftWidth: 6,
+        borderLeftColor: '#ff3b30',
+        padding: 20,
+        borderRadius: 16,
+        marginBottom: 24
     },
     cautionBox: {
         width: '100%',
         backgroundColor: 'rgba(230, 126, 34, 0.15)',
-        borderLeftWidth: 4,
+        borderLeftWidth: 6,
         borderLeftColor: '#e67e22',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16
+        padding: 20,
+        borderRadius: 16,
+        marginBottom: 24
     },
     boxTitle: {
         color: '#FFF',
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 4
+        marginBottom: 8
     },
     boxText: {
-        color: 'rgba(255,255,255,0.85)',
-        fontSize: 14,
-        lineHeight: 20
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 15,
+        lineHeight: 24
     },
     referenceGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
-        marginTop: 10
+        gap: 10,
+        marginTop: 16
     },
     refChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
+        gap: 8,
+        backgroundColor: 'rgba(255,255,255,0.07)',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)'
     },
     refText: {
         color: '#FFF',
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '600'
     },
     actionRow: {
-        flexDirection: 'row',
         width: '100%',
-        gap: 12,
-        marginTop: 20
+        gap: 16,
+        marginTop: 40
     },
     secondaryButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        width: '100%',
+        paddingVertical: 18,
+        borderRadius: 16,
+        backgroundColor: 'transparent',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)'
+        borderColor: 'rgba(255,255,255,0.2)'
     },
     secondaryButtonText: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 14,
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 16,
         fontWeight: 'bold'
     },
     primaryButton: {
-        flex: 2,
+        width: '100%',
         flexDirection: 'row',
         justifyContent: 'center',
-        gap: 8,
-        paddingVertical: 14,
-        borderRadius: 12,
+        gap: 10,
+        paddingVertical: 20,
+        borderRadius: 16,
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 8
     },
     primaryButtonText: {
         color: '#FFF',
-        fontSize: 14,
-        fontWeight: 'bold'
+        fontSize: 18,
+        fontWeight: '900',
+        letterSpacing: 1
     },
     scanningText: {
         color: '#FFFFFF',
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 30,
-        letterSpacing: 0.5,
+        marginBottom: 40,
+        letterSpacing: 1,
     },
     subText: {
         color: '#A0D39B',
-        fontSize: 12,
-        marginTop: 20,
+        fontSize: 14,
+        marginTop: 24,
         fontWeight: '600',
         opacity: 0.8
     },
     skeletonLine: {
-        height: 16,
+        height: 20,
         width: '100%',
         backgroundColor: 'rgba(255,255,255,0.15)',
-        borderRadius: 8,
+        borderRadius: 10,
         marginVertical: 12,
-        overflow: 'hidden',
     },
     skeletonLineShort: {
-        height: 16,
+        height: 20,
         width: '60%',
         backgroundColor: 'rgba(255,255,255,0.15)',
-        borderRadius: 8,
+        borderRadius: 10,
         marginVertical: 12,
     }
 });
