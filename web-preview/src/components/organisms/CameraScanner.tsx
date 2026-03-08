@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FC } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Camera as CameraIcon } from 'lucide-react';
 
 interface CameraScannerProps {
     onCapture: (photo: { path: string, scanMode: 'PRODUCT' | 'INGREDIENTS' }) => void;
@@ -12,6 +11,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     const videoRef = useRef<HTMLVideoElement>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
+    const [scanMode, setScanMode] = useState<'PRODUCT' | 'INGREDIENTS'>('PRODUCT');
 
     // Effect 1: Request camera stream
     const setupCamera = useCallback(async () => {
@@ -37,7 +37,7 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
                 setHasPermission(false);
             }
         }
-    }, []);
+    }, []); // Removed stream from useCallback dependencies as it's set within the function, to avoid infinite loop.
 
     useEffect(() => {
         setupCamera();
@@ -67,21 +67,15 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
         if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            onCapture({ path: dataUrl, scanMode: 'PRODUCT' });
+            onCapture({ path: dataUrl, scanMode });
         }
-    }, [onCapture, isProcessing]);
+    }, [onCapture, isProcessing, scanMode]);
 
     if (hasPermission === false) {
         return (
             <View style={styles.loadingContainer}>
-                <View style={styles.errorIconContainer}>
-                    <Text style={styles.errorIcon}>⚠️</Text>
-                </View>
                 <Text style={styles.errorText}>Camera Access Denied</Text>
-                <Text style={styles.subErrorText}>Please enable camera permissions in your browser settings to scan products.</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={setupCamera}>
-                    <Text style={styles.retryButtonText}>Retry Access</Text>
-                </TouchableOpacity>
+                <Text style={styles.subErrorText}>Please enable camera permissions in your browser settings.</Text>
             </View>
         );
     }
@@ -89,55 +83,67 @@ export const CameraScanner: FC<CameraScannerProps> = ({ onCapture, isProcessing 
     if (hasPermission === null) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#A0D39B" />
-                <Text style={styles.loadingText}>Initializing Scanner...</Text>
+                <ActivityIndicator size="large" color="#F7F8F7" />
+                <Text style={styles.loadingText}>Requesting Camera Access...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.cameraSection}>
-                <View style={styles.videoWrapper}>
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        style={webStyles.video}
-                    />
+        <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={capturePhoto}
+            style={styles.container}
+        >
+            <View style={styles.videoWrapper}>
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={webStyles.video}
+                />
 
-                    {/* Top Pill Overlay */}
-                    <View style={styles.topPillContainer}>
-                        <View style={styles.pill}>
-                            <CameraIcon color="#FFF" size={16} strokeWidth={2.5} style={{ marginRight: 6 }} />
-                            <Text style={styles.pillText}>PHOTO IDENTIFY</Text>
-                        </View>
+                {/* Visual Overlay remains same */}
+                <View style={styles.reticleContainer}>
+                    <View style={styles.reticleBox}>
+                        <View style={styles.cornerTL} />
+                        <View style={styles.cornerTR} />
+                        <View style={styles.scanLine} />
+                        <View style={styles.cornerBL} />
+                        <View style={styles.cornerBR} />
                     </View>
+                    <Text style={styles.scanInstruction}>Align {scanMode === 'PRODUCT' ? 'Product Front' : 'Ingredients List'} and Tap</Text>
+                </View>
 
-                    {/* Reticle Overlay */}
-                    <View style={styles.reticleContainer}>
-                        <View style={styles.reticleBox}>
-                            <View style={styles.cornerTL} />
-                            <View style={styles.cornerTR} />
-                            <View style={styles.cornerBL} />
-                            <View style={styles.cornerBR} />
-                        </View>
-                    </View>
+                {/* Scan Mode Toggle */}
+                <View style={styles.modeToggleContainer}>
+                    <TouchableOpacity
+                        style={[styles.modeTab, scanMode === 'PRODUCT' && styles.activeTab]}
+                        onPress={() => setScanMode('PRODUCT')}
+                    >
+                        <Text style={[styles.modeTabText, scanMode === 'PRODUCT' && styles.activeTabText]}>PRODUCT</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.modeTab, scanMode === 'INGREDIENTS' && styles.activeTab]}
+                        onPress={() => setScanMode('INGREDIENTS')}
+                    >
+                        <Text style={[styles.modeTabText, scanMode === 'INGREDIENTS' && styles.activeTabText]}>INGREDIENTS</Text>
+                    </TouchableOpacity>
+                </View>
 
-                    {/* Capture Button Overlay */}
-                    <View style={styles.captureButtonContainer}>
-                        <TouchableOpacity
-                            style={styles.captureButtonOuter}
-                            onPress={capturePhoto}
-                            activeOpacity={0.7}
-                        >
-                            <View style={styles.captureButtonInner} />
-                        </TouchableOpacity>
-                    </View>
+                {/* Capture Button */}
+                <View style={styles.captureButtonContainer}>
+                    <TouchableOpacity
+                        style={styles.captureButtonOuter}
+                        onPress={capturePhoto}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.captureButtonInner} />
+                    </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 
@@ -157,12 +163,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
-    cameraSection: {
-        flex: 1,
-        width: '100%',
-        position: 'relative',
-        backgroundColor: '#000',
-    },
     videoWrapper: {
         flex: 1,
         width: '100%',
@@ -175,74 +175,63 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#1B3022',
-        padding: 24,
+        padding: 20,
     },
     loadingText: {
-        color: '#A0D39B',
+        color: '#F7F8F7',
         fontSize: 18,
         fontWeight: '600',
-        marginTop: 20,
-        letterSpacing: 0.5,
-    },
-    errorIconContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    errorIcon: {
-        fontSize: 40,
+        marginTop: 16,
     },
     errorText: {
         color: '#FF6B6B',
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '700',
-        marginBottom: 12,
+        marginBottom: 8,
         textAlign: 'center',
     },
     subErrorText: {
         color: '#A0D39B',
-        fontSize: 16,
+        fontSize: 14,
         textAlign: 'center',
-        opacity: 0.9,
-        lineHeight: 22,
-        marginBottom: 32,
+        opacity: 0.8,
     },
-    retryButton: {
-        backgroundColor: '#A0D39B',
-        paddingHorizontal: 32,
-        paddingVertical: 14,
-        borderRadius: 12,
-    },
-    retryButtonText: {
-        color: '#1B3022',
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    topPillContainer: {
+    scanInstruction: {
         position: 'absolute',
-        top: 24,
-        alignSelf: 'center',
-        zIndex: 20,
+        top: 60,
+        color: '#F7F8F7',
+        fontSize: 16,
+        fontWeight: '600',
+        backgroundColor: 'rgba(27, 48, 34, 0.8)',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 25,
+        overflow: 'hidden',
     },
-    pill: {
+    modeToggleContainer: {
+        position: 'absolute',
+        top: 120,
         flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'rgba(27, 48, 34, 0.4)',
+        borderRadius: 20,
+        padding: 4,
+        alignSelf: 'center',
+    },
+    modeTab: {
         paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 16,
     },
-    pillText: {
-        color: '#FFF',
+    activeTab: {
+        backgroundColor: '#F7F8F7',
+    },
+    modeTabText: {
+        color: '#F7F8F7',
         fontSize: 12,
-        fontWeight: '800',
-        letterSpacing: 1,
+        fontWeight: '700',
+    },
+    activeTabText: {
+        color: '#2A422B',
     },
     captureButtonContainer: {
         position: 'absolute',
@@ -251,21 +240,20 @@ const styles = StyleSheet.create({
         zIndex: 20,
     },
     captureButtonOuter: {
-        width: 88,
-        height: 88,
-        borderRadius: 44,
-        borderWidth: 6,
-        borderColor: '#FFF',
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        borderWidth: 4,
+        borderColor: '#F7F8F7',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'transparent',
     },
     captureButtonInner: {
-        width: 68,
-        height: 68,
-        borderRadius: 34,
-        backgroundColor: '#FFF',
-        opacity: 0.9,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#F7F8F7',
     },
     reticleContainer: {
         ...StyleSheet.absoluteFillObject,
@@ -274,13 +262,27 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     reticleBox: {
-        width: 240,
-        height: 240,
+        width: 250,
+        height: 350,
         justifyContent: 'space-between',
-        position: 'relative',
+        backgroundColor: 'rgba(113, 149, 104, 0.15)', // Light green tint
+        borderWidth: 2,
+        borderColor: 'rgba(113, 149, 104, 0.3)',
     },
-    cornerTL: { position: 'absolute', top: -0, left: -0, width: 30, height: 30, borderTopWidth: 3, borderLeftWidth: 3, borderColor: '#69D6B3' },
-    cornerTR: { position: 'absolute', top: -0, right: -0, width: 30, height: 30, borderTopWidth: 3, borderRightWidth: 3, borderColor: '#69D6B3' },
-    cornerBL: { position: 'absolute', bottom: -0, left: -0, width: 30, height: 30, borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#69D6B3' },
-    cornerBR: { position: 'absolute', bottom: -0, right: -0, width: 30, height: 30, borderBottomWidth: 3, borderRightWidth: 3, borderColor: '#69D6B3' },
+    scanLine: {
+        position: 'absolute',
+        top: '50%',
+        left: -10,
+        right: -10,
+        height: 2,
+        backgroundColor: 'rgba(144, 238, 144, 0.8)',
+        shadowColor: '#90EE90',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+    },
+    cornerTL: { position: 'absolute', top: -4, left: -4, width: 40, height: 40, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderTopLeftRadius: 16 },
+    cornerTR: { position: 'absolute', top: -4, right: -4, width: 40, height: 40, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderTopRightRadius: 16 },
+    cornerBL: { position: 'absolute', bottom: -4, left: -4, width: 40, height: 40, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#A0D39B', borderBottomLeftRadius: 16 },
+    cornerBR: { position: 'absolute', bottom: -4, right: -4, width: 40, height: 40, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#A0D39B', borderBottomRightRadius: 16 },
 });
