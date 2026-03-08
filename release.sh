@@ -15,7 +15,7 @@ cd ..
 
 # 3. Ask Firebase to deploy the newly built static files & cloud functions
 echo "🔥 Step 2: Deploying to Firebase..."
-firebase deploy --only hosting,functions
+firebase deploy --only hosting,functions,firestore
 
 # 4. Save code to Github
 echo "🐙 Step 3: Committing and Pushing to GitHub..."

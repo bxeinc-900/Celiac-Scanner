@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
-import { CircleUser, ClipboardList, Camera, Map, ChefHat } from 'lucide-react';
+import { CircleUser, ClipboardList, Camera, Map, ChefHat, Users } from 'lucide-react';
 
 import { CameraScanner } from './components/organisms/CameraScanner';
 import { AnalysisOverlay } from './components/organisms/AnalysisOverlay';
@@ -13,10 +13,11 @@ import { LoginScreen } from './components/organisms/LoginScreen';
 import { HistoryScreen } from './components/organisms/HistoryScreen';
 import { EateriesScreen } from './components/organisms/EateriesScreen';
 import { RecipesScreen } from './components/organisms/RecipesScreen';
+import { CommunityScreen } from './components/organisms/CommunityScreen';
 import { saveScanToHistory } from './services/historyService';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<'SCAN' | 'HISTORY' | 'EATERIES' | 'RECIPES'>('SCAN');
+  const [currentTab, setCurrentTab] = useState<'SCAN' | 'HISTORY' | 'EATERIES' | 'RECIPES' | 'COMMUNITY'>('SCAN');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<CeliacSafetyReport | null>(null);
   const [scanMode, setScanMode] = useState<'PRODUCT' | 'INGREDIENTS'>('PRODUCT');
@@ -130,6 +131,8 @@ export default function App() {
           <EateriesScreen />
         ) : currentTab === 'RECIPES' ? (
           <RecipesScreen />
+        ) : currentTab === 'COMMUNITY' ? (
+          <CommunityScreen />
         ) : (
           <ScrollView
             style={styles.mainContent}
@@ -209,11 +212,11 @@ export default function App() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => setCurrentTab('HISTORY')}
+            onPress={() => setCurrentTab('COMMUNITY')}
           >
             <View pointerEvents="none" style={styles.navItemInner}>
-              <ClipboardList color={currentTab === 'HISTORY' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
-              <Text style={[styles.navText, currentTab === 'HISTORY' && { color: '#A0D39B' }]}>MY LOGS</Text>
+              <Users color={currentTab === 'COMMUNITY' ? "#A0D39B" : "#2A422B"} size={28} strokeWidth={2} />
+              <Text style={[styles.navText, currentTab === 'COMMUNITY' && { color: '#A0D39B' }]}>COMMUNITY</Text>
             </View>
           </TouchableOpacity>
         </View>
